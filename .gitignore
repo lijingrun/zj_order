@@ -1,0 +1,54 @@
+# yii console command
+/yii
+
+# phpstorm project files
+.idea
+
+# netbeans project files
+nbproject
+
+# zend studio for eclipse project files
+.buildpath
+.project
+.settings
+
+# windows thumbnail cache
+Thumbs.db
+
+# composer vendor dir
+/vendor
+
+# composer itself is not needed
+composer.phar
+
+# Mac DS_Store Files
+.DS_Store
+
+# phpunit itself is not needed
+phpunit.phar
+# local phpunit config
+/phpunit.xml
+
+# local config
+/common/config/main-local.php
+/common/config/params-local.php
+
+# swap file
+*.swp
+backend/web/12311.mp4
+backend/web/ErrorFiles/400.html
+backend/web/ErrorFiles/401.html
+backend/web/ErrorFiles/403.html
+backend/web/ErrorFiles/404.html
+backend/web/ErrorFiles/500.html
+backend/web/ErrorFiles/502.html
+backend/web/ErrorFiles/504.html
+backend/web/u.php
+backend/
+yii.bat
+frontend/web/ErrorFiles/
+frontend/web/ueditor/dialogs/emotion/images/0.gif
+frontend/web/ueditor/
+frontend/web/Chart.js-master/.gitignore
+frontend/web/Chart.js-master/
+tests/
