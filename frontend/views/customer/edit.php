@@ -15,6 +15,11 @@
     }
 </style>
 <script>
+    function reset_password(){
+        if(confirm("是否将可以账号密码重置为‘123456’？")){
+            alert("重置操作");
+        }
+    }
     function get_city(){
         var province_id = $("#province").val();
         $("#city").html('');
@@ -72,13 +77,13 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label"><span style="color:red;">*</span>客户名称</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="customer_name" name="customer_name" placeholder="客户名称">
+                    <input type="text"  class="form-control" id="customer_name" value="<?php echo $customer['customer_name']?>" name="customer_name" placeholder="客户名称">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">客户编码</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="customer_code" name="customer_code" placeholder="客户编码">
+                    <input type="text"  class="form-control" id="customer_code" value="<?php echo $customer['customer_code']?>" name="customer_code" placeholder="客户编码">
                 </div>
             </div>
             <div class="form-group">
@@ -87,37 +92,43 @@
                     <select name="province" id="province" class="form-control" style="width: 180px;" onchange="get_city();">
                         <option value="0">请选择客户所在省份</option>
                         <?php foreach($provinces as $province): ?>
-                        <option value="<?php echo $province['id']?>"><?php echo $province['name'];?></option>
+                            <option value="<?php echo $province['id']?>" <?php if($province['id'] == $customer['province_id']){ echo "selected";}?>>
+                                <?php echo $province['name'];?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                     <br />
                     <select name="city" id="city" class="form-control" style="width: 180px;">
-
+                        <?php foreach($citys as $city): ?>
+                        <option value="<?php echo $city['id']?>" <?php if($city['id'] == $customer['city_id']){ echo "selected";}?>>
+                            <?php echo $city['name']; ?>
+                        </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">详细地址</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="address" name="address" placeholder="详细地址">
+                    <input type="text"  class="form-control" id="address" value="<?php echo $customer['address']?>" name="address" placeholder="详细地址">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">邮编</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="zip_code" name="zip_code" placeholder="邮编">
+                    <input type="text"  class="form-control" id="zip_code" name="zip_code" value="<?php echo $customer['zip_code']?>" placeholder="邮编">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label"><span style="color:red;">*</span>电话</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="phone" name="phone" placeholder="电话">
+                    <input type="text"  class="form-control" id="phone" name="phone" value="<?php echo $customer['phone']?>" placeholder="电话">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">传真</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="fax" name="fax" placeholder="传真">
+                    <input type="text"  class="form-control" id="fax" name="fax" value="<?php echo $customer['fax']?>" placeholder="传真">
                 </div>
             </div>
             <div class="form-group">
@@ -125,7 +136,9 @@
                 <div class="col-sm-10">
                     <select id="type_id" name="type_id" class="form-control" style="width: 180px;">
                         <?php foreach($customer_types as $type): ?>
-                        <option value="<?php echo $type['rank_id']?>"><?php echo $type['rank_name']?></option>
+                            <option value="<?php echo $type['rank_id']?>" <?php if($type['rank_id'] == $customer['type_id']){echo "selected";}?>>
+                                <?php echo $type['rank_name']?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -133,53 +146,54 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label">签约时间</label>
                 <div class="col-sm-10">
-                    <input type="date"   class="form-control" id="start_time" name="start_time" >
+                    <input type="date"   class="form-control" id="start_time" name="start_time" value="<?php echo date("Y-m-d",$customer['start_time']); ?>" >
                     <h4>到</h4>
-                    <input type="date"  class="form-control" id="end_time" name="end_time" >
+                    <input type="date"  class="form-control" id="end_time" name="end_time" value="<?php echo date("Y-m-d",$customer['end_time']); ?>" >
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">姓名</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="name" name="name" placeholder="姓名">
+                    <input type="text"  class="form-control" id="name" value="<?php echo $customer['name']?>" name="name" placeholder="姓名">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">职位</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="position" name="position" placeholder="职位">
+                    <input type="text"  class="form-control" id="position" name="position" value="<?php echo $customer['position']?>"  placeholder="职位">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">手机</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="telephone" name="telephone" placeholder="手机">
+                    <input type="text"  class="form-control" id="telephone" name="telephone" value="<?php echo $customer['telephone']?>" placeholder="手机">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">Email</label>
                 <div class="col-sm-10">
-                    <input type="email"  class="form-control" id="email" name="email" placeholder="Email">
+                    <input type="email"  class="form-control" id="email" name="email" value="<?php echo $customer['email']?>" placeholder="Email">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">QQ</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="qq" name="qq" placeholder="QQ">
+                    <input type="text"  class="form-control" id="qq" name="qq" value="<?php echo $customer['qq']?>" placeholder="QQ">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">物流编码</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="log_code" name="log_code" placeholder="物流编码">
+                    <input type="text"  class="form-control" id="log_code" name="log_code" value="<?php echo $customer['log_code']?>" placeholder="物流编码">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">备用信息</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="spare" name="spare" placeholder="备用信息">
+                    <input type="text"  class="form-control" id="spare" name="spare" value="<?php echo $customer['spare']?>" placeholder="备用信息">
                 </div>
             </div>
+            <?php if(empty($customer['user_name'])){ ?>
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <div class="checkbox">
@@ -209,35 +223,44 @@
                     <input type="password"  class="form-control" readonly="readonly" id="c_password" placeholder="确认密码">
                 </div>
             </div>
-        <h3>财务信息</h3>
+            <?php }else{ ?>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">账号</label>
+                    <div class="col-sm-10">
+                        <input type="text"  class="form-control" readonly="readonly" id="user_name" value="user_name" placeholder="账号">
+                        <a href="#" onclick="reset_password();">重置密码</a>
+                    </div>
+                </div>
+            <?php } ?>
+            <h3>财务信息</h3>
             <div class="form-group">
                 <label class="col-sm-2 control-label">开户名称</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="ban_name" name="ban_name" placeholder="开户名称">
+                    <input type="text"  class="form-control" value="<?php echo $customer['ban_name']?>" id="ban_name" name="ban_name" placeholder="开户名称">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">开户银行</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="ban" name="ban" placeholder="开户银行">
+                    <input type="text"  class="form-control" id="ban"  value="<?php echo $customer['ban']?>" name="ban" placeholder="开户银行">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">银行账号</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="ban_no" name="ban_no" placeholder="银行账号">
+                    <input type="text"  class="form-control" id="ban_no" name="ban_no"  value="<?php echo $customer['ban_no']?>" placeholder="银行账号">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">发票抬头</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="invoice" name="invoice" placeholder="发票抬头">
+                    <input type="text"  class="form-control" id="invoice"  value="<?php echo $customer['invoice']?>" name="invoice" placeholder="发票抬头">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">纳税人识别号</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="taxes_no" name="taxes" placeholder="纳税人识别号">
+                    <input type="text"  class="form-control" id="taxes_no"  value="<?php echo $customer['taxes_no']?>" name="taxes" placeholder="纳税人识别号">
                 </div>
             </div>
 

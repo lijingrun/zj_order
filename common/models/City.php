@@ -14,6 +14,6 @@ class City extends ActiveRecord
 {
     public static function tableName()
     {
-        return '{{%city}}';
+        return '{{%ecs_city}}';
     }
 }

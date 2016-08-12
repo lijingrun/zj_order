@@ -7,6 +7,7 @@
  */
 namespace frontend\controllers;
 
+use common\models\City;
 use common\models\Customer;
 use common\models\Customer_type;
 use common\models\Province;
@@ -19,11 +20,22 @@ class CustomerController extends Controller{
 
     public $enableCsrfValidation = false;
 
+    public function beforeAction($action)
+    {
+        if(empty(Yii::$app->session['user_id'])){
+            return $this->redirect('index.php?r=site/login');
+        }else{
+            return $action;
+        }
+    }
+
     public function actionIndex(){
-        $all_customers = Customer::find();
+        $all_customers = Customer::find()->where("user_id =".Yii::$app->session['user_id'])->andWhere("del = 0");
         $page = new Pagination(['totalCount' => $all_customers->count(),'pageSize' => '20']);
         $customers = $all_customers->offset($page->offset)->limit($page->limit)->all();
-
+        foreach($customers as $key=>$customer){
+            $customers[$key]['type_id'] = Customer_type::find()->where("rank_id = ".$customer['type_id'])->asArray()->one();
+        }
         return $this->render("customer_list",[
             'customers' => $customers,
             'pages' => $page,
@@ -37,18 +49,28 @@ class CustomerController extends Controller{
                 Yii::$app->getSession()->setFlash('error','信息不能为空');
                 return;
             }
+            $user_id = Yii::$app->session['user_id'];
+            $province = Province::find()->where("id =".$_POST['province'])->asArray()->one();
+            $city = City::find()->where("id =".$_POST['city'])->asArray()->one();
+            $check_customer = Customer::find()->where("del = 0")->andWhere("customer_name = '".$_POST['customer_name']."'")->one();
+            if(!empty($check_customer)){
+                Yii::$app->getSession()->setFlash('error','客户已经存在！');
+                return $this->redirect("index.php?r=customer/add");
+            }
             $customer = new Customer();
             $customer->customer_name = $_POST['customer_name']; //客户名
             $customer->customer_code = $_POST['customer_code']; //客户编码
-            $customer->province = $_POST['province']; //所在省份
-            $customer->city = $_POST['city']; //所在城市
+            $customer->province_id = $_POST['province']; //所在省份
+            $customer->province = $province['name']; //所在省份
+            $customer->city_id = $_POST['city']; //所在城市
+            $customer->city = $city['name']; //所在城市
             $customer->address = $_POST['address']; //详细地址
             $customer->zip_code = $_POST['zip_code']; //邮编
             $customer->phone = $_POST['phone']; //电话
             $customer->fax = $_POST['fax']; //传真
             $customer->type_id = $_POST['type_id']; //客户类型
-            $customer->start_time = $_POST['start_time']; //签约开始时间
-            $customer->end_time = $_POST['end_time'];  //签约结束时间
+            $customer->start_time = strtotime($_POST['start_time']); //签约开始时间
+            $customer->end_time = strtotime($_POST['end_time']);  //签约结束时间
             $customer->name = $_POST['name']; //姓名
             $customer->position = $_POST['position']; //职位
             $customer->telephone = $_POST['telephone'];
@@ -56,6 +78,7 @@ class CustomerController extends Controller{
             $customer->qq = $_POST['qq'];
             $customer->log_code = $_POST['log_code']; //物流编码
             $customer->spare = $_POST['spare'];
+            $customer->user_id = $user_id;
             //商城账号
             $customer->user_name = $_POST['user_name'];
             $customer->password = $_POST['password'];
@@ -78,6 +101,82 @@ class CustomerController extends Controller{
                 'provinces' => $provinces,
                 'customer_types' => $customer_types,
             ]);
+        }
+    }
+
+    public function actionEdit(){
+        $id = $_GET['id'];
+        $customer = Customer::find()->where("id =".$id)->asArray()->one();
+        if(empty($customer)){
+            Yii::$app->getSession()->setFlash('error','客户不存在!');
+            return $this->redirect("index.php?r=customer");
+        }
+        if(Yii::$app->request->post()){
+            $customer = Customer::find()->where("id =".$id)->one();
+            $province = Province::find()->where("id =".$_POST['province'])->asArray()->one();
+            $city = City::find()->where("id =".$_POST['city'])->asArray()->one();
+            $customer->customer_name = $_POST['customer_name']; //客户名
+            $customer->customer_code = $_POST['customer_code']; //客户编码
+            $customer->province_id = $_POST['province']; //所在省份
+            $customer->province = $province['name']; //所在省份
+            $customer->city_id = $_POST['city']; //所在城市
+            $customer->city = $city['name']; //所在城市
+            $customer->address = $_POST['address']; //详细地址
+            $customer->zip_code = $_POST['zip_code']; //邮编
+            $customer->phone = $_POST['phone']; //电话
+            $customer->fax = $_POST['fax']; //传真
+            $customer->type_id = $_POST['type_id']; //客户类型
+            $customer->start_time = strtotime($_POST['start_time']); //签约开始时间
+            $customer->end_time = strtotime($_POST['end_time']);  //签约结束时间
+            $customer->name = $_POST['name']; //姓名
+            $customer->position = $_POST['position']; //职位
+            $customer->telephone = $_POST['telephone'];
+            $customer->email = $_POST['email'];
+            $customer->qq = $_POST['qq'];
+            $customer->log_code = $_POST['log_code']; //物流编码
+            $customer->spare = $_POST['spare'];
+            //商城账号
+            if(!empty($_POST['user_name'])) {
+                $customer->user_name = $_POST['user_name'];
+                $customer->password = $_POST['password'];
+            }
+            //财务信息
+            $customer->ban_name = $_POST['ban_name'];
+            $customer->ban = $_POST['ban'];
+            $customer->ban_no = $_POST['ban_no'];
+            $customer->invoice = $_POST['invoice'];
+            $customer->taxes = $_POST['taxes'];
+            if($customer->save()){
+                Yii::$app->getSession()->setFlash('success','修改成功！');
+            }else{
+                Yii::$app->getSession()->setFlash('error','服务器繁忙，请稍后重试！');
+            }
+            return $this->redirect('index.php?r=customer');
+        }else{
+            $provinces = Province::find()->asArray()->all();
+            $citys = City::find()->where("top_id =".$customer['province_id'])->asArray()->all();
+            $types = Customer_type::find()->asArray()->all();
+            return $this->render("edit",[
+                'provinces' => $provinces,
+                'citys' => $citys,
+                'customer_types' => $types,
+                'customer' => $customer,
+            ]);
+        }
+    }
+
+    //删除客户
+    public function actionDel_customer(){
+        if(Yii::$app->request->post()){
+            $id = $_POST['id'];
+            $customer = Customer::find()->where("id =".$id)->andWhere("user_id =".Yii::$app->session['user_id'])->one();
+            $customer->del = 1;
+            if($customer->save()){
+                $data = $this->return_json(0,'操作成功！');
+            }else{
+                $data = $this->return_json(1,'服务器繁忙，请稍后重试！');
+            }
+            return $data;
         }
     }
 

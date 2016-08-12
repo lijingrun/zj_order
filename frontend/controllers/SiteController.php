@@ -96,11 +96,8 @@ class SiteController extends Controller
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             $user = User::find()->where(['username' => $model['username']])->asArray()->one();
-            $user_role = Role::find()->where(['user_id' => $user['id']])->asArray()->one();
-            Yii::$app->session['user_role'] = $user_role;
             Yii::$app->session['user_id'] = $user['id'];
-            Yii::$app->session['store_id'] = $user['store_id'];
-            return $this->goBack();
+            return $this->redirect("index.php?r=customer");
         } else {
             return $this->render('login', [
                 'model' => $model,

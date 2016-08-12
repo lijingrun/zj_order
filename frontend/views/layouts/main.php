@@ -35,7 +35,8 @@ AppAsset::register($this);
         ],
     ]);
     $menuItems = [
-        ['label' => '工单', 'url' => ['/orders']],
+        ['label' => '商品', 'url' => ['/goods']],
+        ['label' => '订单', 'url' => ['/orders']],
         ['label' => '统计', 'url' => ['/statistics']],
         ['label' => '客户', 'url' => ['/customer']],
     ];

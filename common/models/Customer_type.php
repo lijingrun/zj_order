@@ -14,6 +14,6 @@ class Customer_type extends ActiveRecord
 {
     public static function tableName()
     {
-        return '{{%customer_type}}';
+        return '{{%ecs_user_rank}}';
     }
 }

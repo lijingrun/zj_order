@@ -14,6 +14,6 @@ class Province extends ActiveRecord
 {
     public static function tableName()
     {
-        return '{{%province}}';
+        return '{{%ecs_province}}';
     }
 }
