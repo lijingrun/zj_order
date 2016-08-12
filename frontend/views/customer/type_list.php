@@ -104,9 +104,9 @@
     }
 </script>
 <div align="right">
-    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-        新增
-    </button>
+<!--    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">-->
+<!--        新增-->
+<!--    </button>-->
 </div>
 
 
@@ -145,28 +145,20 @@
 <div style="padding-bottom: 30px;">
 
 </div>
-<table class="table">
+<table class="table" style="width:50%;" align="center">
     <tr>
         <th>级别名称</th>
         <th>订货折扣</th>
-        <th>操作</th>
+<!--        <th>操作</th>-->
     </tr>
     <?php foreach($types as $type): ?>
     <tr>
-        <td id="name<?php echo $type['id'];?>" ondblclick="to_change_name(<?php echo $type['id'];?>);" >
-            <?php echo $type['name'];?>
-        </td>
-        <td id="discount<?php echo $type['id']?>" ondblclick="to_change_discount(<?php echo $type['id'];?>);" >
-            折扣：<?php echo $type['discount'];?>%
+        <td >
+            <?php echo $type['rank_name'];?>
         </td>
         <td>
-            <a href="#" onclick="del(<?php echo $type['id'];?>)">删除</a>
+            折扣：<?php echo $type['discount'];?>%
         </td>
     </tr>
     <?php endforeach; ?>
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-    </tr>
 </table>

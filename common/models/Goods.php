@@ -2,7 +2,7 @@
 /**
  * Created by PhpStorm.
  * User: lijingrun
- * Date: 2016/5/9
+ * Date: 2016/8/12
  * Time: 14:57
  */
 namespace common\models;
@@ -10,10 +10,10 @@ namespace common\models;
 use Yii;
 use yii\db\ActiveRecord;
 
-class Pay_type extends ActiveRecord
+class Goods extends ActiveRecord
 {
     public static function tableName()
     {
-        return '{{%pay_type}}';
+        return '{{%ecs_goods}}';
     }
 }

@@ -32,9 +32,9 @@ use yii\widgets\LinkPager;
     <a href="index.php?r=customer/add">
         <button class="btn-primary">添加新客户</button>
     </a>
-<!--    <a href="index.php?r=customer/type">-->
-<!--        <button class="btn-primary">设置客户等级</button>-->
-<!--    </a>-->
+    <a href="index.php?r=customer/type">
+        <button class="btn-primary">客户等级</button>
+    </a>
 
 </div>
 <div>
@@ -57,7 +57,7 @@ use yii\widgets\LinkPager;
             <td><?php echo $customer['customer_name'];?></td>
             <td><?php echo $customer['user_name'];?></td>
             <td><?php echo $customer['province'].$customer['city'];?></td>
-            <td><?php echo $customer['type_id']['rank_name'];?></td>
+            <td><?php echo $customer['type_id']['rank_name']."(折扣:".$customer['type_id']['discount']."%)";?></td>
             <td><?php echo $customer['name'];?></td>
             <td><?php echo $customer['telephone'];?></td>
             <td>
