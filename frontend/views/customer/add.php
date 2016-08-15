@@ -87,7 +87,7 @@
                     <select name="province" id="province" class="form-control" style="width: 180px;" onchange="get_city();">
                         <option value="0">请选择客户所在省份</option>
                         <?php foreach($provinces as $province): ?>
-                        <option value="<?php echo $province['id']?>"><?php echo $province['name'];?></option>
+                        <option value="<?php echo $province['region_id']?>"><?php echo $province['region_name'];?></option>
                         <?php endforeach; ?>
                     </select>
                     <br />

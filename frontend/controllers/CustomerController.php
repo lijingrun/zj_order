@@ -10,7 +10,10 @@ namespace frontend\controllers;
 use common\models\City;
 use common\models\Customer;
 use common\models\Customer_type;
+use common\models\Ecs_user;
 use common\models\Province;
+use common\models\Region;
+use common\models\User_address;
 use Yii;
 use yii\data\Pagination;
 use yii\web\Controller;
@@ -35,6 +38,9 @@ class CustomerController extends Controller{
         $customers = $all_customers->offset($page->offset)->limit($page->limit)->all();
         foreach($customers as $key=>$customer){
             $customers[$key]['type_id'] = Customer_type::find()->where("rank_id = ".$customer['type_id'])->asArray()->one();
+            if(!empty($customer['customer_id'])) {
+                $customers[$key]['customer_id'] = Ecs_user::find()->where("user_id =" . $customer['customer_id'])->asArray()->one();
+            }
         }
         return $this->render("customer_list",[
             'customers' => $customers,
@@ -50,8 +56,8 @@ class CustomerController extends Controller{
                 return;
             }
             $user_id = Yii::$app->session['user_id'];
-            $province = Province::find()->where("id =".$_POST['province'])->asArray()->one();
-            $city = City::find()->where("id =".$_POST['city'])->asArray()->one();
+            $province = Region::find()->where("region_id =".$_POST['province'])->asArray()->one();
+            $city = Region::find()->where("region_id =".$_POST['city'])->asArray()->one();
             $check_customer = Customer::find()->where("del = 0")->andWhere("customer_name = '".$_POST['customer_name']."'")->one();
             if(!empty($check_customer)){
                 Yii::$app->getSession()->setFlash('error','客户已经存在！');
@@ -61,9 +67,9 @@ class CustomerController extends Controller{
             $customer->customer_name = $_POST['customer_name']; //客户名
             $customer->customer_code = $_POST['customer_code']; //客户编码
             $customer->province_id = $_POST['province']; //所在省份
-            $customer->province = $province['name']; //所在省份
+            $customer->province = $province['region_name']; //所在省份
             $customer->city_id = $_POST['city']; //所在城市
-            $customer->city = $city['name']; //所在城市
+            $customer->city = $city['region_name']; //所在城市
             $customer->address = $_POST['address']; //详细地址
             $customer->zip_code = $_POST['zip_code']; //邮编
             $customer->phone = $_POST['phone']; //电话
@@ -79,15 +85,39 @@ class CustomerController extends Controller{
             $customer->log_code = $_POST['log_code']; //物流编码
             $customer->spare = $_POST['spare'];
             $customer->user_id = $user_id;
-            //商城账号
-            $customer->user_name = $_POST['user_name'];
-            $customer->password = $_POST['password'];
             //财务信息
             $customer->ban_name = $_POST['ban_name'];
             $customer->ban = $_POST['ban'];
             $customer->ban_no = $_POST['ban_no'];
             $customer->invoice = $_POST['invoice'];
             $customer->taxes = $_POST['taxes'];
+
+            //商城账号信息
+            $user_name = $_POST['user_name'];
+            $password = $_POST['password'];
+            if(!empty($user_name)) {
+                //先查用户名是否已经注册商城账号，如果有，就重新写一个
+                $ecs_user = Ecs_user::find()->where("user_name ='" . $user_name."'")->count();
+                if ($ecs_user > 0) {
+                    Yii::$app->getSession()->setFlash('error', '商城账号已经存在！');
+                    return $this->redirect("index.php?r=customer/add");
+                } else {
+                    $new_ecs_user = new Ecs_user();
+                    $new_ecs_user->user_name = $user_name;
+                    $new_ecs_user->password = md5($password);
+                    $new_ecs_user->email = $_POST['email'];
+                    $new_ecs_user->user_rank = $_POST['type_id'];
+                    $new_ecs_user->office_phone = $_POST['phone'];
+                    $new_ecs_user->mobile_phone = $_POST['tel_phone'];
+                    if ($new_ecs_user->save()) {
+                        $customer->customer_id = $new_ecs_user['user_id'];
+                    } else {
+                        Yii::$app->getSession()->setFlash('error', "服务器繁忙，请稍后重试！");
+                        return $this->redirect("index.php?r=customer/add");
+                    }
+                }
+            }
+
             if($customer->save()){
                 return $this->redirect('index.php?r=customer');
             }else{
@@ -95,7 +125,7 @@ class CustomerController extends Controller{
                 return $this->redirect("index.php?r=customer/add");
             }
         }else {
-            $provinces = Province::find()->asArray()->all();
+            $provinces = Region::find()->where("parent_id = 1")->asArray()->all();
             $customer_types = Customer_type::find()->asArray()->all();
             return $this->render("add", [
                 'provinces' => $provinces,
@@ -107,20 +137,23 @@ class CustomerController extends Controller{
     public function actionEdit(){
         $id = $_GET['id'];
         $customer = Customer::find()->where("id =".$id)->asArray()->one();
+        if(!empty($customer['customer_id'])) {
+            $ecs_user = Ecs_user::find()->where("user_id =" . $customer['customer_id'])->asArray()->one();
+        }
         if(empty($customer)){
             Yii::$app->getSession()->setFlash('error','客户不存在!');
             return $this->redirect("index.php?r=customer");
         }
         if(Yii::$app->request->post()){
             $customer = Customer::find()->where("id =".$id)->one();
-            $province = Province::find()->where("id =".$_POST['province'])->asArray()->one();
-            $city = City::find()->where("id =".$_POST['city'])->asArray()->one();
+            $province = Region::find()->where("region_id =".$_POST['province'])->asArray()->one();
+            $city = Region::find()->where("region_id =".$_POST['city'])->asArray()->one();
             $customer->customer_name = $_POST['customer_name']; //客户名
             $customer->customer_code = $_POST['customer_code']; //客户编码
             $customer->province_id = $_POST['province']; //所在省份
-            $customer->province = $province['name']; //所在省份
+            $customer->province = $province['region_name']; //所在省份
             $customer->city_id = $_POST['city']; //所在城市
-            $customer->city = $city['name']; //所在城市
+            $customer->city = $city['region_name']; //所在城市
             $customer->address = $_POST['address']; //详细地址
             $customer->zip_code = $_POST['zip_code']; //邮编
             $customer->phone = $_POST['phone']; //电话
@@ -153,14 +186,15 @@ class CustomerController extends Controller{
             }
             return $this->redirect('index.php?r=customer');
         }else{
-            $provinces = Province::find()->asArray()->all();
-            $citys = City::find()->where("top_id =".$customer['province_id'])->asArray()->all();
+            $provinces = Region::find()->where("parent_id = 1")->asArray()->all();
+            $citys = Region::find()->where("parent_id =".$customer['province_id'])->asArray()->all();
             $types = Customer_type::find()->asArray()->all();
             return $this->render("edit",[
                 'provinces' => $provinces,
                 'citys' => $citys,
                 'customer_types' => $types,
                 'customer' => $customer,
+                'ecs_user' => $ecs_user,
             ]);
         }
     }
@@ -186,6 +220,23 @@ class CustomerController extends Controller{
         return $this->render("type_list",[
             'types' => $types,
         ]);
+    }
+
+    //重置密码
+    public function actionReset_password(){
+        if(Yii::$app->request->post()){
+            $user_id = $_POST['user_id'];
+            if(!empty($user_id)){
+                $ecs_user = Ecs_user::find()->where("user_id =".$user_id)->one();
+                $ecs_user->password ="e10adc3949ba59abbe56e057f20f883e";
+                if($ecs_user->save()){
+                    echo 111;
+                }else{
+                    echo 222;
+                }
+                exit;
+            }
+        }
     }
 
     //增加客户类型

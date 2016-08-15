@@ -15,9 +15,20 @@
     }
 </style>
 <script>
-    function reset_password(){
+    function reset_password(user_id){
         if(confirm("是否将可以账号密码重置为‘123456’？")){
-            alert("重置操作");
+            $.ajax({
+                type : 'post',
+                url : "index.php?r=customer/reset_password",
+                data : {'user_id' : user_id},
+                success : function(data){
+                    if(data == 111){
+                        alert("重置成功！");
+                    }else{
+                        alert("服务器繁忙，请稍后重试！");
+                    }
+                }
+            });
         }
     }
     function get_city(){
@@ -92,16 +103,16 @@
                     <select name="province" id="province" class="form-control" style="width: 180px;" onchange="get_city();">
                         <option value="0">请选择客户所在省份</option>
                         <?php foreach($provinces as $province): ?>
-                            <option value="<?php echo $province['id']?>" <?php if($province['id'] == $customer['province_id']){ echo "selected";}?>>
-                                <?php echo $province['name'];?>
+                            <option value="<?php echo $province['region_id']?>" <?php if($province['region_id'] == $customer['province_id']){ echo "selected";}?>>
+                                <?php echo $province['region_name'];?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                     <br />
                     <select name="city" id="city" class="form-control" style="width: 180px;">
                         <?php foreach($citys as $city): ?>
-                        <option value="<?php echo $city['id']?>" <?php if($city['id'] == $customer['city_id']){ echo "selected";}?>>
-                            <?php echo $city['name']; ?>
+                        <option value="<?php echo $city['region_id']?>" <?php if($city['region_id'] == $customer['city_id']){ echo "selected";}?>>
+                            <?php echo $city['region_name']; ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
@@ -193,7 +204,7 @@
                     <input type="text"  class="form-control" id="spare" name="spare" value="<?php echo $customer['spare']?>" placeholder="备用信息">
                 </div>
             </div>
-            <?php if(empty($customer['user_name'])){ ?>
+            <?php if(empty($customer['customer_id'])){ ?>
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <div class="checkbox">
@@ -227,8 +238,7 @@
                 <div class="form-group">
                     <label class="col-sm-2 control-label">账号</label>
                     <div class="col-sm-10">
-                        <input type="text"  class="form-control" readonly="readonly" id="user_name" value="user_name" placeholder="账号">
-                        <a href="#" onclick="reset_password();">重置密码</a>
+                        <input type="text"  class="form-control" readonly="readonly" id="user_name" value="<?php echo $ecs_user['user_name'];?>" placeholder="账号">
                     </div>
                 </div>
             <?php } ?>

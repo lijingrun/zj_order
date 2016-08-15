@@ -55,7 +55,7 @@ use yii\widgets\LinkPager;
         <?php foreach($customers as $customer): ?>
         <tr>
             <td><?php echo $customer['customer_name'];?></td>
-            <td><?php echo $customer['user_name'];?></td>
+            <td><?php echo $customer['customer_id']['user_name'];?></td>
             <td><?php echo $customer['province'].$customer['city'];?></td>
             <td><?php echo $customer['type_id']['rank_name']."(折扣:".$customer['type_id']['discount']."%)";?></td>
             <td><?php echo $customer['name'];?></td>
