@@ -37,7 +37,7 @@ AppAsset::register($this);
     $menuItems = [
         ['label' => '商品', 'url' => ['/goods']],
         ['label' => '订单', 'url' => ['/orders']],
-        ['label' => '统计', 'url' => ['/statistics']],
+//        ['label' => '统计', 'url' => ['/statistics']],
         ['label' => '客户', 'url' => ['/customer']],
     ];
     if (Yii::$app->user->isGuest) {
