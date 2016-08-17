@@ -34,6 +34,10 @@ class CustomerController extends Controller{
 
     public function actionIndex(){
         $all_customers = Customer::find()->where("user_id =".Yii::$app->session['user_id'])->andWhere("del = 0");
+        $key_word = $_GET['key_word'];
+        if(!empty($key_word)){
+            $all_customers->andWhere("customer_name like '%".$key_word."%'");
+        }
         $page = new Pagination(['totalCount' => $all_customers->count(),'pageSize' => '20']);
         $customers = $all_customers->offset($page->offset)->limit($page->limit)->all();
         foreach($customers as $key=>$customer){
@@ -45,6 +49,7 @@ class CustomerController extends Controller{
         return $this->render("customer_list",[
             'customers' => $customers,
             'pages' => $page,
+            'key_word' => $key_word,
         ]);
     }
 
@@ -132,6 +137,24 @@ class CustomerController extends Controller{
                 'customer_types' => $customer_types,
             ]);
         }
+    }
+
+    //客户详细资料
+    public function actionDetail(){
+        $id = $_GET['id'];
+        $customer = Customer::find()->where("id =".$id)->asArray()->one();
+        $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one();
+        if(!empty($customer['user_id'])){
+            $user = Ecs_user::find()->where("user_id =".$customer['user_id'])->asArray()->one();
+            $user_name = $user['user_name'];
+        }else{
+            $user_name = "未开通";
+        }
+        return $this->render("detail",[
+            'customer' => $customer,
+            'rank' => $rank,
+            'user_name' => $user_name,
+        ]);
     }
 
     public function actionEdit(){

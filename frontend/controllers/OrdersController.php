@@ -140,11 +140,12 @@ class OrdersController extends Controller{
         $order = Customer_order::find()->where("id =".$id)->asArray()->one();
         $goods = Customer_order_goods::find()->where("order_id =".$id)->asArray()->all();
         $customer = Customer::find()->where("id =".$order['customer_id'])->asArray()->one();
-
+        $count = count($goods);
         return $this->render('order_detail',[
             'order' => $order,
             'goods' => $goods,
             'customer' => $customer,
+            'count' => $count,
         ]);
     }
 
@@ -207,14 +208,14 @@ class OrdersController extends Controller{
                     $cart_data[] = $return_data;
                 endforeach;
                 //输出数据
-                echo "<tr><th>商品</th><th>价格</th><th>客户价格</th><th>数量</th><th>小计</th><th></th></tr>";
+                echo "<tr><th>商品</th><th>客户价格</th><th>数量</th><th></th></tr>";
                 foreach($cart_data as $val):
                     echo "<tr>";
                     echo "<td>".$val['goods_name']."</td>";
-                    echo "<td>￥".$val['shop_price']."</td>";
+//                    echo "<td>￥".$val['shop_price']."</td>";
                     echo "<td>￥".$val['user_price']."</td>";
                     echo "<td id='cart".$val['cart_id']."' ondblclick='to_change_nums(".$val['cart_id'].");'>".$val['nums']."</td>";
-                    echo "<td>￥".$val['total_price']."</td>";
+//                    echo "<td>￥".$val['total_price']."</td>";
                     echo "<td><a href='#' onclick='del_cart(".$val['cart_id'].");'>X</a></td>";
                     echo "</tr>";
                 endforeach;
