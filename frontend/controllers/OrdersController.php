@@ -48,6 +48,7 @@ class OrdersController extends Controller{
             $end = strtotime($end);
             $all_orders->andWhere("add_time <=".$end);
         }
+        $all_orders->orderBy("id desc");
         $pages = new Pagination(['totalCount' => $all_orders->count(), 'pageSize' => '10']);
         $orders = $all_orders->offset($pages->offset)->limit($pages->limit)->all();
         foreach($orders as $key=>$order):
@@ -92,6 +93,7 @@ class OrdersController extends Controller{
             $order->pay_type = $_POST['pay_type'];
             $order->remarks = $_POST['remarks'];
             $order->add_time = time();
+            $order->order_sn = $this->get_order_sn();
             $total_price = 0;
             if($order->save()){
                 foreach($carts as $cart):
@@ -251,4 +253,18 @@ class OrdersController extends Controller{
         }
     }
 
+    //作废订单
+    public function actionDel(){
+        if(Yii::$app->request->post()){
+                $id = $_POST['id'];
+            $order = Customer_order::find()->where("id =".$id)->one();
+            $order->status = 0;
+            if($order->save()){
+                echo 111;
+            }else{
+                echo 222;
+            }
+            exit;
+        }
+    }
 }

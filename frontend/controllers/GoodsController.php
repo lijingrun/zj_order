@@ -86,20 +86,6 @@ class GoodsController extends Controller{
         ]);
     }
 
-    //递归算法
-    public function cate($info, $child, $pid = 0)
-    {
-        $child = array();
-        if(!empty($info)){//当$info中的子类还没有被移光的时候
-            foreach ($info as $k => $v) {
-                if($v['parent_id'] == $pid){//判断是否存在子类pid和返回的父类id相等的
-                    $v['child'] = $this->cate($info, $child, $v['cat_id']);//每次递归参数为当前的父类的id
-                    $child[] = $v;//将$info中的键值移动到$child当中
-                    unset($info[$k]);//每次移动过去之后删除$info中当前的值
-                }
-            }
-        }
-        return $child;//返回生成的树形数组
-    }
+
 
 }

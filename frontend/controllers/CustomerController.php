@@ -7,10 +7,16 @@
  */
 namespace frontend\controllers;
 
+use common\models\Category;
 use common\models\City;
 use common\models\Customer;
+use common\models\Customer_cart;
+use common\models\Customer_order;
+use common\models\Customer_order_goods;
 use common\models\Customer_type;
 use common\models\Ecs_user;
+use common\models\Goods;
+use common\models\Member_price;
 use common\models\Province;
 use common\models\Region;
 use common\models\User_address;
@@ -389,6 +395,167 @@ class CustomerController extends Controller{
             }
             echo $data;
             exit;
+        }
+    }
+
+    //添加购物车
+    public function actionAdd_cart(){
+        $all_goods = Goods::find();
+        $key_word = $_GET['key_word'];
+        $cat_id = $_GET['cat_id'];
+        if(!empty($cat_id)){
+            $all_goods->andWhere("cat_id =".$cat_id);
+        }
+        if(!empty($key_word)){
+            $all_goods->andWhere("goods_name like '%".$key_word."%'")->orWhere("goods_sn like '%".$key_word."%'");
+        }
+        $category_data = Category::find()->asArray()->all();
+        $child = array();
+        $category = $this->cate($category_data,$child,0);
+        $pages = new Pagination(['totalCount' => $all_goods->count(),'pageSize' => 10]);
+        $goods = $all_goods->offset($pages->offset)->limit($pages->limit)->asArray()->all();
+        $customer_id = $_GET['customer_id'];
+        return $this->render("add_cart",[
+            'goods' => $goods,
+            'pages' => $pages,
+            'customer_id' => $customer_id,
+            'key_word' => $key_word,
+            'category' => $category,
+        ]);
+    }
+
+    //将商品添加到购物车
+    public function actionAdd_to_cart(){
+        if(Yii::$app->request->post()){
+            $goods_id = $_POST['goods_id'];
+            $customer_id = $_POST['customer_id'];
+            $user_id = Yii::$app->session['user_id'];
+            $cart = Customer_cart::find()->where("goods_id =".$goods_id)->andWhere("user_id =".$user_id)->andWhere("customer_id =".$customer_id)->count();
+            if($cart > 0){
+                echo 222;
+                exit;
+            }
+            $goods = Goods::find()->where("goods_id =".$goods_id)->asArray()->one();
+            $new_cart = new Customer_cart();
+            $new_cart->goods_id = $goods_id;
+            $new_cart->goods_name = $goods['goods_name'];
+            $new_cart->user_id = Yii::$app->session['user_id'];
+            $new_cart->customer_id = $customer_id;
+            $new_cart->nums = 1;
+            if($new_cart->save()){
+                echo 111;
+            }else{
+                echo 333;
+            }
+            exit;
+        }
+    }
+
+    //查看购物车
+    public function actionCart(){
+        $customer_id = $_GET['customer_id'];
+        $carts = Customer_cart::find()->where("customer_id =".$customer_id)->asArray()->all();
+        $customer = Customer::find()->where("id = ".$customer_id)->asArray()->one();
+        $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one();
+        $total_price = 0;
+        $cart_data = array();
+        foreach($carts as $cart):
+            $cart_goods = array();
+            $cart_goods['goods_name'] = $cart['goods_name'];
+            $cart_goods['cart_id'] = $cart['id'];
+            $goods = Goods::find()->where("goods_id =".$cart['goods_id'])->asArray()->one();
+            $cart_goods['goods_img'] = $goods['goods_img'];
+            //查价钱
+            $member_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
+            if(!empty($member_price['user_price'])){
+                $price = $member_price['user_price'];
+            }else{
+                $price = $goods['shop_price']*($rank['discount']/100);
+            }
+            $cart_goods['goods_num'] = $goods['goods_number'];
+            $cart_goods['price'] = $price;
+            $cart_goods['num'] = $cart['nums'];
+            $cart_data[] = $cart_goods;
+            $total_price += $price*$cart['nums'];
+        endforeach;
+        return $this->render("cart",[
+            'cart_data' => $cart_data,
+            'total_price' => $total_price,
+            'customer_id' => $customer_id,
+        ]);
+    }
+
+    //确认下单
+    public function actionAdd_order(){
+        $customer_id = $_GET['customer_id'];
+        $user_id = Yii::$app->session['user_id'];
+        $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
+        if(Yii::$app->request->post()){
+            $carts = Customer_cart::find()->where("customer_id =".$customer_id)->andWhere("user_id =".$user_id)->asArray()->all();
+            if(empty($carts)){
+                Yii::$app->getSession()->setFlash("error",'你未选择商品！');
+                return $this->redirect("index.php?r=customer/cart&customer_id=".$customer_id);
+            }
+            $province_id = $_POST['province']; //省份id
+            $city_id = $_POST['city'];      //城市id
+            $address = $_POST['address'];  //地址
+            $contacts = $_POST['contacts']; //联系人
+            $phone = $_POST['phone']; //联系电话
+            $customer_id = $_POST['customer_id']; //客户id
+            $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
+            $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one(); //会员级别
+            $province = Region::find()->where("region_id =".$province_id)->asArray()->one();
+            $city = Region::find()->where("region_id =".$city_id)->asArray()->one();
+            //保存订单信息
+            $order = new Customer_order();
+            $order->customer_id = $customer_id; //客户id
+            $order->user_id = $user_id; //业务员id
+            $order->address = $province['region_name'].$city['region_name'].$address;
+            $order->contacts = $contacts;
+            $order->phone = $phone;
+            $order->clog = $_POST['clog'];
+            $order->get_time = $_POST['get_time'];
+            $order->pay_type = $_POST['pay_type'];
+            $order->remarks = $_POST['remarks'];
+            $order->add_time = time();
+            $order->order_sn = $this->get_order_sn();
+            $total_price = 0;
+            if($order->save()){
+                foreach($carts as $cart):
+                    $goods = Goods::find()->where("goods_id =".$cart['goods_id'])->asArray()->one();
+                    $order_goods = new Customer_order_goods();
+                    $order_goods->order_id = $order['id'];
+                    $order_goods->num = $cart['nums'];
+                    $order_goods->goods_id = $goods['goods_id'];
+                    $order_goods->goods_name = $goods['goods_name'];
+                    $order_goods->shop_price = $goods['shop_price'];
+                    $rank_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
+                    if(!empty($rank_price)){
+                        $goods_price = $rank_price['user_price'];
+                    }else{
+                        $goods_price = $goods['shop_price']*($rank['discount']/100);
+                    }
+                    $order_goods->customer_price = $goods_price;
+                    $total_price += $goods_price*$cart['nums'];
+                    $order_goods->save();
+                endforeach;
+                $order->order_amount = $total_price;
+                $order->goods_amount = $total_price;
+                $order->save();
+                Customer_cart::deleteAll("user_id =".$user_id);  //删除临时数据
+                Yii::$app->getSession()->setFlash('success','下单成功！');
+                return $this->redirect("index.php?r=orders");
+            }else{
+                Yii::$app->getSession()->setFlash("error","系统繁忙，请稍后重试！");
+                return $this->redirect("index.php?r=orders");
+            }
+        }else{
+            $provinces = Region::find()->where("parent_id = 1")->asArray()->all();
+            return $this->render('add_order',[
+                'provinces' => $provinces,
+                'customer' => $customer,
+            ]);
+
         }
     }
 
