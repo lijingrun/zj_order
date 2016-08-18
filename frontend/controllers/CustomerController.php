@@ -400,7 +400,7 @@ class CustomerController extends Controller{
 
     //添加购物车
     public function actionAdd_cart(){
-        $all_goods = Goods::find();
+        $all_goods = Goods::find()->where("is_delete = 0");
         $key_word = $_GET['key_word'];
         $cat_id = $_GET['cat_id'];
         if(!empty($cat_id)){

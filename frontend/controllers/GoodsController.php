@@ -20,7 +20,7 @@ class GoodsController extends Controller{
 
     public function actionIndex(){
         $key_word = $_GET['key_word'];
-        $all_goods = Goods::find();
+        $all_goods = Goods::find()->where("is_delete = 0");
         if(!empty($key_word)){
             $all_goods->where("goods_name like '%".$key_word."%'")->orWhere("goods_sn like '%".$key_word."%'");
         }
@@ -62,16 +62,22 @@ class GoodsController extends Controller{
     public function actionDetail(){
         $id = $_GET['id'];
         $goods = Goods::find()->where("goods_id =".$id)->asArray()->one();
-        $member_price = Member_price::find()->where("goods_id =".$id)->asArray()->all();
+//        $member_price = Member_price::find()->where("goods_id =".$id)->asArray()->all();
         $ranks = Customer_type::find()->all();
-        if(!empty($member_price)) {
-            foreach ($member_price as $key => $val):
-                $member_price[$key]['rank_id'] = Customer_type::find()->where("rank_id =" . $val['rank_id'])->asArray()->all();
-            endforeach;
-        }
+        $member_price = array();
+        foreach($ranks as $rank):
+            $data = array();
+            $data['rank_name'] = $rank['rank_name'];
+            $m_price = Member_price::find()->where("goods_id =".$id)->andWhere("user_rank =".$rank['rank_id'])->asArray()->one();
+            if(!empty($m_price)){
+                $data['user_price'] = $m_price['user_price'];
+            }else{
+                $data['user_price'] = $goods['shop_price']*($rank['discount']/100);
+            }
+            $member_price[] = $data;
+        endforeach;
         return $this->render("detail",[
             'goods' => $goods,
-            'ranks' => $ranks,
             'member_price' => $member_price,
         ]);
     }
