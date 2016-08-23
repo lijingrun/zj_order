@@ -28,17 +28,19 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => '业务员订单系统',
+        'brandLabel' => '后台审核系统',
         'brandUrl' => 'index.php?r=customer',
         'options' => [
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
     $menuItems = [
-        ['label' => '商品', 'url' => ['/goods']],
-        ['label' => '订单', 'url' => ['/orders']],
+//        ['label' => '商品', 'url' => ['/goods']],
+//        ['label' => '订单', 'url' => ['/orders']],
 //        ['label' => '统计', 'url' => ['/statistics']],
-        ['label' => '客户', 'url' => ['/customer']],
+//        ['label' => '客户', 'url' => ['/customer']],
+        ['label' => '客户审核', 'url' => ['/customer_examine']],
+        ['label' => '账号', 'url' => ['/user']],
     ];
     if (Yii::$app->user->isGuest) {
 //        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];

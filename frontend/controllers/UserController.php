@@ -19,20 +19,22 @@ class UserController extends Controller{
 
     public function beforeAction($action)
     {
-        if(Yii::$app->session['user_role']['user'] != 'on'){
-            Yii::$app->getSession()->setFlash('error','你没有权限访问！');
-            return $this->goHome();
-        }else{
+        $user_id = Yii::$app->session['user_id'];
+        $user = User::find()->where("id =".$user_id)->asArray()->one();
+        if($user['type_id'] == 2){
             return $action;
+        }else{
+            Yii::$app->getSession()->setFlash('error','你没有权限访问！');
+            return $this->redirect("index.php?r=site/login");
         }
     }
 
     public function actionIndex(){
         $users = User::find()->asArray()->all();
-        foreach($users as $key=>$user):
-            $users[$key]['store'] = Store::find()->where(['store_id' => $user['store_id']])->asArray()->one();
-
-        endforeach;
+//        foreach($users as $key=>$user):
+//            $users[$key]['store'] = Store::find()->where(['store_id' => $user['store_id']])->asArray()->one();
+//
+//        endforeach;
         return $this->render('user_list',[
             'users' => $users,
         ]);
@@ -104,21 +106,29 @@ class UserController extends Controller{
 
     //添加账号
     public function actionAdd(){
+        $user_id = Yii::$app->session['user_id'];
+        $user = User::find()->where("id =".$user_id)->asArray()->one();
+        if($user['type_id'] != 2){
+            Yii::$app->getSession()->setFlash('error','您账号没有权限操作！');
+            return $this->redirect('index.php?r=user');
+        }
         $model = new UserForm();
-        $all_store = Store::find()->asArray()->all();
-        $stores = array();
-        foreach($all_store as $store):
-            $stores[$store['store_id']] = $store['store_name'];
-        endforeach;
-        $all_type = User_type::find()->asArray()->all();
-        $user_types = array();
-        foreach($all_type as $type):
-            $user_types[$type['type_id']] = $type['type_name'];
-        endforeach;
+//        $all_store = Store::find()->asArray()->all();
+//        $stores = array();
+//        foreach($all_store as $store):
+//            $stores[$store['store_id']] = $store['store_name'];
+//        endforeach;
+//        $all_type = User_type::find()->asArray()->all();
+        $user_types = array(
+            '1' => '业务员',
+            '2' => '后台',
+        );
+//        foreach($all_type as $type):
+//            $user_types[$type['type_id']] = $type['type_name'];
+//        endforeach;
         if($model->load(Yii::$app->request->post()) && $model->validate()){
             $user = new User();
             $user->username = $model['username'];
-            $user->store_id = $model['store_id'];
             $user->type_id = $model['user_type'];
             $user->setPassword($model['password']);
             $user->generateAuthKey();
@@ -131,7 +141,7 @@ class UserController extends Controller{
             return $this->redirect("index.php?r=user");
         }else{
             return $this->render('register',[
-                'stores' => $stores,
+//                'stores' => $stores,
                 'model' => $model,
                 'user_types' => $user_types,
             ]);

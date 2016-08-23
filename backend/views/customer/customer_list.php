@@ -47,15 +47,29 @@ use yii\widgets\LinkPager;
     <?php foreach($customers as $customer): ?>
     <div class="panel panel-info">
         <div class="panel-heading">
-            <h3 class="panel-title"><?php echo $customer['customer_name'];?></h3>
+            <span class="panel-title"><?php echo $customer['customer_name'];?></span>
+            <span style="float: right;font-size: 13px;">
+                <?php
+                    switch($customer['status']){
+                        case 1 : echo "待审客户";
+                            break;
+                        case 2 : echo "正常客户";
+                            break;
+                        case 3 : echo "审核不通过";
+                            break;
+                    }
+                ?>
+            </span>
         </div>
         <div class="panel-body">
             <p><?php echo $customer['province'].$customer['city']?></p>
             <p>客户等级：<?php echo $customer['type_id']['rank_name'];?></p>
             <div style="font-size: 18px;" align="right">
+                <?php if($customer['status'] == 2){ ?>
                 <a href="index.php?r=customer/add_cart&customer_id=<?php echo $customer['id']?>">
                     <input type="button" class="btn-success" value="代下单" />
                 </a>
+                <?php } ?>
                 <a href="index.php?r=customer/detail&id=<?php echo $customer['id'];?>">
                     <input type="button" class="btn-info" value="查看详细" />
                 </a>

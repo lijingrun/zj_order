@@ -186,6 +186,9 @@ class CustomerController extends Controller{
             $customer->address = $_POST['address']; //详细地址
             $customer->zip_code = $_POST['zip_code']; //邮编
             $customer->phone = $_POST['phone']; //电话
+            if($customer->status == 3){
+                $customer->status = 1;
+            }
             $customer->fax = $_POST['fax']; //传真
             $customer->type_id = $_POST['type_id']; //客户类型
             $customer->start_time = strtotime($_POST['start_time']); //签约开始时间
@@ -490,6 +493,10 @@ class CustomerController extends Controller{
         $customer_id = $_GET['customer_id'];
         $user_id = Yii::$app->session['user_id'];
         $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
+        if(!empty($customer['up_customer'])){
+            $up_customer = Customer::find()->where("id =".$customer['up_customer'])->asArray()->one();
+            $up_rank = Customer_type::find()->where("rank_id =".$up_customer['type_id'])->asArray()->one();
+        }
         if(Yii::$app->request->post()){
             $carts = Customer_cart::find()->where("customer_id =".$customer_id)->andWhere("user_id =".$user_id)->asArray()->all();
             if(empty($carts)){
@@ -520,6 +527,7 @@ class CustomerController extends Controller{
             $order->add_time = time();
             $order->order_sn = $this->get_order_sn();
             $total_price = 0;
+            $up_total_price = 0;
             if($order->save()){
                 foreach($carts as $cart):
                     $goods = Goods::find()->where("goods_id =".$cart['goods_id'])->asArray()->one();
@@ -535,12 +543,23 @@ class CustomerController extends Controller{
                     }else{
                         $goods_price = $goods['shop_price']*($rank['discount']/100);
                     }
+                    if(!empty($up_customer)){
+                        $up_rank_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$up_customer['type_id'])->asArray()->one();
+                        if(!empty($up_rank_price)){
+                            $up_price = $up_rank_price['user_price'];
+                        }else{
+                            $up_price = $goods['shop_price']*($up_rank['discount']/100);
+                        }
+                        $order_goods->up_price = $up_price;
+                        $up_total_price += $up_price*$cart['nums'];
+                    }
                     $order_goods->customer_price = $goods_price;
                     $total_price += $goods_price*$cart['nums'];
                     $order_goods->save();
                 endforeach;
                 $order->order_amount = $total_price;
                 $order->goods_amount = $total_price;
+                $order->up_amount = $up_total_price;
                 $order->save();
                 Customer_cart::deleteAll("user_id =".$user_id);  //删除临时数据
                 Yii::$app->getSession()->setFlash('success','下单成功！');

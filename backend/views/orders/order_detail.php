@@ -44,12 +44,14 @@
             }
             ?>
             </p>
+            <p>付款方式：<?php if($order['pay_type'] == 1){ echo "现销";}else{ echo "赊销";};?></p>
         </div>
     </div>
 
     <div class="panel panel-info">
         <div class="panel-body">
             <p>订单金额：￥<?php echo $order['order_amount'];?></p>
+
         </div>
     </div>
 
@@ -87,6 +89,7 @@
             <p>收货地址：<?php echo $order['address']?></p>
             <p>收货人：<?php echo $order['contacts']?></p>
             <p>电话：<?php echo $order['phone']?></p>
+            <p>送货方式：<?php if($order['clog'] == 1){echo "送货";}else{ echo "自提"; }?></p>
         </div>
     </div>
 
