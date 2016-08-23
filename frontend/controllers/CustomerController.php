@@ -551,9 +551,12 @@ class CustomerController extends Controller{
             }
         }else{
             $provinces = Region::find()->where("parent_id = 1")->asArray()->all();
+            if(!empty($customer['province_id']))
+            $citys = Region::find()->where("parent_id =".$customer['province_id'])->asArray()->all();
             return $this->render('add_order',[
                 'provinces' => $provinces,
                 'customer' => $customer,
+                'citys' => $citys,
             ]);
 
         }

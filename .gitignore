@@ -44,7 +44,6 @@ backend/web/ErrorFiles/500.html
 backend/web/ErrorFiles/502.html
 backend/web/ErrorFiles/504.html
 backend/web/u.php
-backend/
 yii.bat
 frontend/web/ErrorFiles/
 frontend/web/ueditor/dialogs/emotion/images/0.gif
@@ -52,3 +51,9 @@ frontend/web/ueditor/
 frontend/web/Chart.js-master/.gitignore
 frontend/web/Chart.js-master/
 tests/
+backend/weixin_pay/
+backend/web/favicon.ico
+backend/web/
+environments/
+backend/config/
+backend/runtime/

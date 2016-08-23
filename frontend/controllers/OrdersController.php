@@ -38,6 +38,10 @@ class OrdersController extends Controller{
     {
         $all_orders = Customer_order::find()->where("user_id =".Yii::$app->session['user_id']);
 //        $customer_name = $_GET['customer_name'];
+        $customer_id = $_GET['id'];
+        if(!empty($customer_id)){
+            $all_orders->andWhere("customer_id =".$customer_id);
+        }
         $start = $_GET['start'];
         $end = $_GET['end'];
         if(!empty($start)){
