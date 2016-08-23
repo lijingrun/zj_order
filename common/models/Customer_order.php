@@ -14,6 +14,6 @@ class Customer_order extends ActiveRecord
 {
     public static function tableName()
     {
-        return '{{%customer_orders}}';
+        return '{{%ecs_order_info}}';
     }
 }

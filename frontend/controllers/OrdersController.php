@@ -36,11 +36,16 @@ class OrdersController extends Controller{
 
     public function actionIndex()
     {
-        $all_orders = Customer_order::find()->where("user_id =".Yii::$app->session['user_id']);
+        $all_orders = Customer_order::find()->where("sale_id =".Yii::$app->session['user_id']);
 //        $customer_name = $_GET['customer_name'];
         $customer_id = $_GET['id'];
         if(!empty($customer_id)){
-            $all_orders->andWhere("customer_id =".$customer_id);
+            $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
+            if(!empty($customer['customer_id'])) {
+                $all_orders->andWhere("customer_id =" . $customer_id)->orWhere("user_id =" . $customer['customer_id']);
+            }else{
+                $all_orders->andWhere("customer_id =" . $customer_id);
+            }
         }
         $start = $_GET['start'];
         $end = $_GET['end'];
@@ -52,11 +57,15 @@ class OrdersController extends Controller{
             $end = strtotime($end);
             $all_orders->andWhere("add_time <=".$end);
         }
-        $all_orders->orderBy("id desc");
+        $all_orders->orderBy("order_id desc");
         $pages = new Pagination(['totalCount' => $all_orders->count(), 'pageSize' => '10']);
         $orders = $all_orders->offset($pages->offset)->limit($pages->limit)->all();
         foreach($orders as $key=>$order):
-            $orders[$key]['customer_id'] = Customer::find()->where("id =".$order['customer_id'])->asArray()->one();
+            if(!empty($order['customer_id'])) {
+                $orders[$key]['customer_id'] = Customer::find()->where("id =" . $order['customer_id'])->asArray()->one();
+            }else{
+                $orders[$key]['customer_id'] = Customer::find()->where("customer_id =" . $order['user_id'])->asArray()->one();
+            }
         endforeach;
 
         return $this->render("order_list",[
@@ -143,9 +152,13 @@ class OrdersController extends Controller{
     //订单详细
     public function actionDetail(){
         $id = $_GET['id'];
-        $order = Customer_order::find()->where("id =".$id)->asArray()->one();
+        $order = Customer_order::find()->where("order_id =".$id)->asArray()->one();
         $goods = Customer_order_goods::find()->where("order_id =".$id)->asArray()->all();
-        $customer = Customer::find()->where("id =".$order['customer_id'])->asArray()->one();
+        if(!empty($order['customer_id'])) {
+            $customer = Customer::find()->where("id =" . $order['customer_id'])->asArray()->one();
+        }else{
+            $customer = Customer::find()->where("customer_id =" . $order['user_id'])->asArray()->one();
+        }
         $count = count($goods);
         return $this->render('order_detail',[
             'order' => $order,
@@ -260,9 +273,9 @@ class OrdersController extends Controller{
     //作废订单
     public function actionDel(){
         if(Yii::$app->request->post()){
-                $id = $_POST['id'];
-            $order = Customer_order::find()->where("id =".$id)->one();
-            $order->status = 0;
+            $id = $_POST['id'];
+            $order = Customer_order::find()->where("order_id =".$id)->one();
+            $order->order_status = 2;
             if($order->save()){
                 echo 111;
             }else{

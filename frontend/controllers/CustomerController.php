@@ -516,14 +516,23 @@ class CustomerController extends Controller{
             //保存订单信息
             $order = new Customer_order();
             $order->customer_id = $customer_id; //客户id
-            $order->user_id = $user_id; //业务员id
-            $order->address = $province['region_name'].$city['region_name'].$address;
-            $order->contacts = $contacts;
-            $order->phone = $phone;
-            $order->clog = $_POST['clog'];
+            $order->sale_id = $user_id; //业务员id
+            $order->address = $province['region_name'].$city['region_id'].$address;
+            $order->consignee = $contacts;
+            $order->tel = $phone;
+            $order->shipping_id = $_POST['clog'];
+            if($_POST['clog'] == 1){
+                $colg_name = '送货';
+            }else{
+                $colg_name = "自提";
+            }
+            $order->country = 1;
+            $order->province = $province_id;
+            $order->city = $city_id;
+            $order->shipping_name = $colg_name;
             $order->get_time = $_POST['get_time'];
-            $order->pay_type = $_POST['pay_type'];
-            $order->remarks = $_POST['remarks'];
+            $order->customer_pay = $_POST['pay_type'];
+            $order->best_time = $_POST['remarks'];
             $order->add_time = time();
             $order->order_sn = $this->get_order_sn();
             $total_price = 0;
@@ -532,11 +541,12 @@ class CustomerController extends Controller{
                 foreach($carts as $cart):
                     $goods = Goods::find()->where("goods_id =".$cart['goods_id'])->asArray()->one();
                     $order_goods = new Customer_order_goods();
-                    $order_goods->order_id = $order['id'];
-                    $order_goods->num = $cart['nums'];
+                    $order_goods->order_id = $order['order_id'];
+                    $order_goods->goods_number = $cart['nums'];
                     $order_goods->goods_id = $goods['goods_id'];
                     $order_goods->goods_name = $goods['goods_name'];
-                    $order_goods->shop_price = $goods['shop_price'];
+                    $order_goods->goods_sn = $goods['goods_sn'];
+                    $order_goods->market_price = $goods['shop_price'];
                     $rank_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
                     if(!empty($rank_price)){
                         $goods_price = $rank_price['user_price'];
@@ -553,7 +563,7 @@ class CustomerController extends Controller{
                         $order_goods->up_price = $up_price;
                         $up_total_price += $up_price*$cart['nums'];
                     }
-                    $order_goods->customer_price = $goods_price;
+                    $order_goods->goods_price = $goods_price;
                     $total_price += $goods_price*$cart['nums'];
                     $order_goods->save();
                 endforeach;

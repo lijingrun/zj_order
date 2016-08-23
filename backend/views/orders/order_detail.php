@@ -32,19 +32,35 @@
             <p>订单编号：<?php echo $order['order_sn'];?></p>
             <p>订单状态：
             <?php
-            switch($order['status']){
-                case 10 : echo "未支付";
+            switch($order['order_status']){
+                case 0 : echo "未确认";
                     break;
-                case 20 : echo "待发货";
+                case 1 : echo "已确认";
                     break;
-                case 30 : echo "已签收";
+                case 2 : echo "已取消";
                     break;
-                case 0 : echo "已取消";
+            }
+            echo "|";
+            switch($order['pay_status']){
+                case 0 : echo "未支付";
+                    break;
+                case 1 : echo "支付中";
+                    break;
+                case 2 : echo "已支付";
+                    break;
+            }
+            echo "|";
+            switch($order['shipping_status']){
+                case 0 : echo "未发货";
+                    break;
+                case 1 : echo "已发货";
+                    break;
+                case 2 : echo "收获确认";
                     break;
             }
             ?>
             </p>
-            <p>付款方式：<?php if($order['pay_type'] == 1){ echo "现销";}else{ echo "赊销";};?></p>
+            <p>付款方式：<?php if($order['customer_pay'] == 1){ echo "现销";}else{ echo "赊销";};?></p>
         </div>
     </div>
 
@@ -77,7 +93,7 @@
     </div>
     <div class="panel panel-info">
         <div class="panel-body">
-            <p>备注信息：<?php $order['remarks']?></p>
+            <p>备注信息：<?php echo $order['best_time'];?></p>
         </div>
     </div>
 
@@ -87,16 +103,19 @@
         </div>
         <div class="panel-body">
             <p>收货地址：<?php echo $order['address']?></p>
-            <p>收货人：<?php echo $order['contacts']?></p>
-            <p>电话：<?php echo $order['phone']?></p>
-            <p>送货方式：<?php if($order['clog'] == 1){echo "送货";}else{ echo "自提"; }?></p>
+            <p>收货人：<?php echo $order['consignee']?></p>
+            <p>电话：<?php echo $order['tel']?></p>
+            <p>送货方式：<?php echo $order['shipping_name']?></p>
         </div>
     </div>
-
     <div align="center">
-        <button onclick="del_order(<?php echo $order['id']?>);" class="btn-default" style="width:45%;padding:3px;">订单作废</button>
+        <?php if($order['order_status'] == 1){ ?>
+        <button onclick="del_order(<?php echo $order['order_id']?>);" class="btn-default" style="width:45%;padding:3px;">订单作废</button>
         &nbsp;&nbsp;
         <button class="btn-primary" style="width:45%;padding:3px;">确认收款</button>
+        <?php }elseif($order[order_status] == 2){ ?>
+            <span class="label label-danger" style="font-size: 20px;">订单已取消</span>
+        <?php } ?>
     </div>
 
 
@@ -118,8 +137,8 @@
                         <?php foreach($goods as $good): ?>
                         <tr>
                             <td><?php echo $good['goods_name'];?></td>
-                            <td><?php echo $good['customer_price'];?></td>
-                            <td><?php echo $good['num'];?></td>
+                            <td><?php echo $good['goods_price'];?></td>
+                            <td><?php echo $good['goods_number'];?></td>
                         </tr>
                         <?php endforeach; ?>
                         <tr>

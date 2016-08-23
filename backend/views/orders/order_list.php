@@ -9,7 +9,7 @@ use yii\widgets\LinkPager;
 ?>
 <div>
     <?php foreach($orders as $order): ?>
-        <a href="index.php?r=orders/detail&id=<?php echo $order['id']?>">
+        <a href="index.php?r=orders/detail&id=<?php echo $order['order_id']?>">
         <div class="panel panel-success">
             <div class="panel-heading">
                 <h3 class="panel-title">订单号：<?php echo $order['order_sn'];?></h3>
