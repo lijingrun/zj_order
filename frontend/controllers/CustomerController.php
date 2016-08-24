@@ -517,6 +517,7 @@ class CustomerController extends Controller{
             $order = new Customer_order();
             $order->customer_id = $customer_id; //客户id
             $order->sale_id = $user_id; //业务员id
+            $order->user_id = $customer['customer_id'];
             $order->address = $province['region_name'].$city['region_id'].$address;
             $order->consignee = $contacts;
             $order->tel = $phone;

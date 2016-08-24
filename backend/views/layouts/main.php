@@ -39,6 +39,7 @@ AppAsset::register($this);
         ['label' => '订单', 'url' => ['/orders']],
 //        ['label' => '统计', 'url' => ['/statistics']],
         ['label' => '客户', 'url' => ['/customer']],
+        ['label' => '发票', 'url' => ['/invoice']],
     ];
     if (Yii::$app->user->isGuest) {
 //        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
