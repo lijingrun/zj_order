@@ -18,6 +18,15 @@ use yii\web\Controller;
 
 class GoodsController extends Controller{
 
+    public function beforeAction($action)
+    {
+        if(empty(Yii::$app->session['user_id'])){
+            return $this->redirect("index.php?r=site/login");
+        }else{
+            return $action;
+        }
+    }
+
     public function actionIndex(){
         $key_word = $_GET['key_word'];
         $all_goods = Goods::find()->where("is_delete = 0");

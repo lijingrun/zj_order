@@ -20,6 +20,15 @@ class InvoiceController extends Controller{
 
     public $enableCsrfValidation = false;
 
+    public function beforeAction($action)
+    {
+       if(empty(Yii::$app->session['user_id'])){
+           return $this->redirect("index.php?r=site/login");
+       }else{
+           return $action;
+       }
+    }
+
     public function actionIndex(){
         $user_id = Yii::$app->session['user_id'];
         $all_invoices = Invoice::find()->where("seal_id =".$user_id)->orderBy('add_time desc');
