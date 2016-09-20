@@ -9,6 +9,7 @@ namespace frontend\controllers;
 
 use common\models\Role;
 use common\models\User;
+use common\models\User_rule;
 use common\models\UserForm;
 use Yii;
 use yii\web\Controller;
@@ -20,12 +21,16 @@ class UserController extends Controller{
     public function beforeAction($action)
     {
         $user_id = Yii::$app->session['user_id'];
-        $user = User::find()->where("id =".$user_id)->asArray()->one();
-        if($user['type_id'] == 2){
-            return $action;
-        }else{
-            Yii::$app->getSession()->setFlash('error','你没有权限访问！');
+        if(empty($user_id)){
             return $this->redirect("index.php?r=site/login");
+        }else{
+            $user_rule = User_rule::find()->where("user_id =".$user_id)->asArray()->one();
+            if($user_rule['user'] != 1){
+                Yii::$app->getSession()->setFlash('error','你没有权限访问！');
+                return $this->redirect("index.php");
+            }else{
+                return $action;
+            }
         }
     }
 
@@ -145,6 +150,39 @@ class UserController extends Controller{
                 'model' => $model,
                 'user_types' => $user_types,
             ]);
+        }
+    }
+
+    //权限设置
+    public function actionRule(){
+        $user_id = $_GET['user_id'];
+        $user_rule = User_rule::find()->where("user_id =" . $user_id)->one();
+        if(Yii::$app->request->post()){
+            $user_rule['is_seal'] = empty($_POST['is_seal']) ? 0 : 1;
+            $user_rule['invoice_examine'] = empty($_POST['invoice_examine']) ? 0 : 1;
+            $user_rule['user'] = empty($_POST['user']) ? 0 : 1;
+            $user_rule['customer_examine'] = empty($_POST['customer_examine']) ? 0 : 1;
+            $user_rule['customer'] = empty($_POST['customer']) ? 0 : 1;
+            if($user_rule->save()){
+                Yii::$app->getSession()->setFlash('success','操作成功！');
+                return $this->redirect('index.php?r=user');
+            }
+        }else {
+            $user = User::find()->where("id =".$user_id)->asArray()->one();
+            if (empty($user_rule)) {
+                $new_rule = new User_rule();
+                $new_rule['user_id'] = $user_id;
+                if (!$new_rule->save()) {
+                    Yii::$app->getSession()->setFlash('error', '系统繁忙，请刷新重试！');
+                    return $this->redirect("index.php?r=user");
+                }
+            }
+            $user_rule = User_rule::find()->where("user_id =" . $user_id)->asArray()->one();
+            return $this->render('user_rule',[
+                'user_rule' => $user_rule,
+                'user' => $user,
+            ]);
+
         }
     }
 }

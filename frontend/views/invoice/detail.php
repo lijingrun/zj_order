@@ -19,6 +19,25 @@
             }
         });
     }
+    function change_sn(){
+        if(confirm("是否确定修改发票号？")){
+            var new_sn = $("#invoice_sn").val();
+            var invoice_id = <?php echo $invoice['id'];?>;
+            if(new_sn != ''){
+                $.ajax({
+                    type : 'post',
+                    url : 'index.php?r=invoice/change_invoice_sn',
+                    data : {'new_sn' : new_sn , 'id' : invoice_id},
+                    success : function(data){
+                        if(data == 111){
+                            alert("操作成功！");
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
 </script>
 <div>
     <div align="center">
@@ -29,7 +48,8 @@
             发票类型：<?php echo $invoice['invoice_type'];?>
         </li>
         <li class="list-group-item">
-            发票号：<?php echo $invoice['invoice_sn'];?>
+            发票号：<input type="text" value="<?php echo $invoice['invoice_sn'];?>" id="invoice_sn" />
+            <input type="button" value="修改" onclick="change_sn();" />
         </li>
         <li class="list-group-item">
             发票点数：<?php echo $invoice['invoice_den'];?>%
@@ -56,10 +76,10 @@
             数量：<?php echo $invoice['goods_numbers'];?>
         </li>
         <li class="list-group-item">
-            应收税金：<?php echo $invoice['invoice_money'];?>
+            金额：<?php echo $invoice['goods_amount'];?>
         </li>
         <li class="list-group-item">
-            金额：<?php echo $invoice['goods_amount'];?>
+            应收税金：<?php echo $invoice['invoice_money'];?>
         </li>
         <li class="list-group-item">
             纳税人识别号：<?php echo $invoice['invoice_no'];?>

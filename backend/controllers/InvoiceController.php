@@ -50,7 +50,7 @@ class InvoiceController extends Controller{
         if(Yii::$app->request->post()){
             $invoice = new Invoice();
             $invoice->invoice_type = $_POST['invoice_type'];
-            $invoice->invoice_sn = $_POST['invoice_sn'];
+//            $invoice->invoice_sn = $_POST['invoice_sn'];
             $invoice->invoice_den = $_POST['invoice_den'];
             $invoice->good_price_type = $_POST['good_price_type'];
             $invoice->money_type = $_POST['money_type'];

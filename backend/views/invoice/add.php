@@ -62,12 +62,12 @@
                 </select>
             </div>
         </div>
-        <div class="form-group">
-            <label class="col-sm-2 control-label"><span style="color:red;">*</span>发票号码</label>
-            <div class="col-sm-10">
-                <input type="text"  class="form-control" id="invoice_sn" name="invoice_sn" placeholder="发票号码">
-            </div>
-        </div>
+<!--        <div class="form-group">-->
+<!--            <label class="col-sm-2 control-label"><span style="color:red;">*</span>发票号码</label>-->
+<!--            <div class="col-sm-10">-->
+<!--                <input type="text"  class="form-control" id="invoice_sn" name="invoice_sn" placeholder="发票号码">-->
+<!--            </div>-->
+<!--        </div>-->
         <div class="form-group">
             <label class="col-sm-2 control-label"><span style="color:red;">*</span>发票点数（票面金额）</label>
             <div class="col-sm-10">

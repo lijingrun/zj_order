@@ -20,9 +20,11 @@ use common\models\Member_price;
 use common\models\Province;
 use common\models\Region;
 use common\models\User_address;
+use common\models\User_rule;
 use Yii;
 use yii\data\Pagination;
 use yii\web\Controller;
+use yii\web\User;
 
 
 class CustomerController extends Controller{
@@ -31,10 +33,17 @@ class CustomerController extends Controller{
 
     public function beforeAction($action)
     {
-        if(empty(Yii::$app->session['user_id'])){
-            return $this->redirect('index.php?r=site/login');
+        $user_id = Yii::$app->session['user_id'];
+        if(empty($user_id)){
+            return $this->redirect("index.php?r=site/login");
         }else{
-            return $action;
+            $user_rule = User_rule::find()->where("user_id =".$user_id)->asArray()->one();
+            if($user_rule['customer'] != 1){
+                Yii::$app->getSession()->setFlash('error','你没有权限访问！');
+                return $this->redirect("index.php");
+            }else{
+                return $action;
+            }
         }
     }
 

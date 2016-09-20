@@ -11,6 +11,7 @@ namespace frontend\controllers;
 use common\models\Customer;
 use common\models\Customer_type;
 use common\models\User;
+use common\models\User_rule;
 use Yii;
 use yii\data\Pagination;
 use yii\web\Controller;
@@ -23,12 +24,16 @@ class Customer_examineController extends Controller{
     public function beforeAction($action)
     {
         $user_id = Yii::$app->session['user_id'];
-        $user = User::find()->where("id =".$user_id)->asArray()->one();
-        if($user['type_id'] == 2){
-            return $action;
+        if(empty($user_id)){
+            return $this->redirect("index.php?r=site/login");
         }else{
-            Yii::$app->getSession()->setFlash('error','你没有权限操作！');
-            return $this->redirect("index.php?r=user");
+            $user_rule = User_rule::find()->where("user_id =".$user_id)->asArray()->one();
+            if($user_rule['customer_examine'] != 1){
+                Yii::$app->getSession()->setFlash('error','你没有权限访问！');
+                return $this->redirect("index.php");
+            }else{
+                return $action;
+            }
         }
     }
 

@@ -13,12 +13,29 @@ use common\models\Goods;
 use common\models\Invoice;
 use common\models\Member_price;
 use common\models\User;
+use common\models\User_rule;
 use Yii;
 use yii\data\Pagination;
 use yii\web\Controller;
 
 
 class InvoiceController extends Controller{
+
+    public function beforeAction($action)
+    {
+        $user_id = Yii::$app->session['user_id'];
+        if(empty($user_id)){
+            return $this->redirect("index.php?r=site/login");
+        }else{
+            $user_rule = User_rule::find()->where("user_id =".$user_id)->asArray()->one();
+            if($user_rule['invoice_examine'] != 1){
+                Yii::$app->getSession()->setFlash('error','你没有权限访问！');
+                return $this->redirect("index.php");
+            }else{
+                return $action;
+            }
+        }
+    }
 
     public function actionIndex(){
         $all_invoices = Invoice::find()->orderBy("add_time desc");
@@ -71,6 +88,21 @@ class InvoiceController extends Controller{
         return $this->render("detail",[
             'invoice' => $invoice,
         ]);
+    }
+
+    public function actionChange_invoice_sn(){
+        if(Yii::$app->request->post()){
+            $id = $_POST['id'];
+            $new_sn = $_POST['new_sn'];
+            $invoice = Invoice::find()->where("id =".$id)->one();
+            $invoice['invoice_sn'] = $new_sn;
+            if($invoice->save()){
+                echo 111;
+            }else{
+                echo 222;
+            }
+            exit;
+        }
     }
 
 }

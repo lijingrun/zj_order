@@ -18,7 +18,7 @@
         <tr>
             <th style="width:100px;">账号名</th>
             <th style="width:150px;">注册时间</th>
-            <th style="width:100px;">所属分类</th>
+            <th style="width:100px;">权限分配</th>
 <!--            <th style="width:100px;">所属店铺</th>-->
 <!--            <th>操作</th>-->
         </tr>
@@ -27,14 +27,9 @@
             <td><?php echo $user['username']?></td>
             <td><?php echo date('Y-m-d',$user['created_at'])?></td>
             <td>
-                <?php
-                    switch($user['type_id']){
-                        case 1 : echo "业务员";
-                            break;
-                        case 2 : echo "后台";
-                            break;
-                    }
-                ?>
+                <a href="index.php?r=user/rule&user_id=<?php echo $user['id'];?>">
+                    设置权限
+                </a>
             </td>
 <!--            <td>--><?php //echo $user['store']['store_name']?><!--</td>-->
 <!--            <td>-->
