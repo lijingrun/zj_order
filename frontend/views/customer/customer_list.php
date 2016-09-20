@@ -44,7 +44,8 @@ use yii\widgets\LinkPager;
     <table class="table table-hover">
         <tr>
             <th>客户名称</th>
-            <th>登陆账号</th>
+<!--            <th>登陆账号</th>-->
+            <th>业务员</th>
             <th>地区</th>
             <th>级别</th>
             <th>联系人</th>
@@ -54,8 +55,13 @@ use yii\widgets\LinkPager;
         </tr>
         <?php foreach($customers as $customer): ?>
         <tr>
-            <td><?php echo $customer['customer_name'];?></td>
-            <td><?php echo $customer['customer_id']['user_name'];?></td>
+            <td>
+                <a href="index.php?r=customer/detail&id=<?php echo $customer['id'];?>">
+                <?php echo $customer['customer_name'];?>
+                </a>
+            </td>
+<!--            <td>--><?php //echo $customer['customer_id']['user_name'];?><!--</td>-->
+            <td><?php echo $customer['user_id']['username'];?></td>
             <td><?php echo $customer['province'].$customer['city'];?></td>
             <td><?php echo $customer['type_id']['rank_name']."(折扣:".$customer['type_id']['discount']."%)";?></td>
             <td><?php echo $customer['name'];?></td>
@@ -63,9 +69,15 @@ use yii\widgets\LinkPager;
             <td>
                 <?php
                     switch($customer['status']){
-                        case 1 : echo '通过';
+                        case 1 : echo '待审客户';
                             break;
-                        case 2 : echo "不通过";
+                        case 2 : echo "正常客户";
+                            break;
+                        case 3 : echo "审核不通过客户";
+                            break;
+                        case 0 : echo "已删除客户";
+                            break;
+                        default : echo "未知状态客户";
                             break;
                     }
                 ?>

@@ -92,6 +92,12 @@
                 </div>
             </div>
             <div class="form-group">
+                <label class="col-sm-2 control-label"><span style="color:red;">*</span>营业执照号</label>
+                <div class="col-sm-10">
+                    <input type="text"  class="form-control" id="license_id" name="license_id" value="<?php echo $customer['license_id']?>"  >
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="col-sm-2 control-label">客户编码</label>
                 <div class="col-sm-10">
                     <input type="text"  class="form-control" id="customer_code" value="<?php echo $customer['customer_code']?>" name="customer_code" placeholder="客户编码">
@@ -204,44 +210,44 @@
                     <input type="text"  class="form-control" id="spare" name="spare" value="<?php echo $customer['spare']?>" placeholder="备用信息">
                 </div>
             </div>
-            <?php if(empty($customer['customer_id'])){ ?>
-            <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="ec_account" onclick="input_ec();" />
-                            <span style="color:red;">开通订货账号</span>
-                            (开通订货账号,代理商才能进入系统订货）
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">账号</label>
-                <div class="col-sm-10">
-                    <input type="text"  class="form-control" readonly="readonly" id="user_name" name="user_name" placeholder="账号">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">密码</label>
-                <div class="col-sm-10">
-                    <input type="password"  class="form-control" readonly="readonly" id="password" name="password" placeholder="密码">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">确认密码</label>
-                <div class="col-sm-10">
-                    <input type="password"  class="form-control" readonly="readonly" id="c_password" placeholder="确认密码">
-                </div>
-            </div>
-            <?php }else{ ?>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">账号</label>
-                    <div class="col-sm-10">
-                        <input type="text"  class="form-control" readonly="readonly" id="user_name" value="<?php echo $ecs_user['user_name'];?>" placeholder="账号">
-                    </div>
-                </div>
-            <?php } ?>
+<!--            --><?php //if(empty($customer['customer_id'])){ ?>
+<!--            <div class="form-group">-->
+<!--                <div class="col-sm-offset-2 col-sm-10">-->
+<!--                    <div class="checkbox">-->
+<!--                        <label>-->
+<!--                            <input type="checkbox" id="ec_account" onclick="input_ec();" />-->
+<!--                            <span style="color:red;">开通订货账号</span>-->
+<!--                            (开通订货账号,代理商才能进入系统订货）-->
+<!--                        </label>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-2 control-label">账号</label>-->
+<!--                <div class="col-sm-10">-->
+<!--                    <input type="text"  class="form-control" readonly="readonly" id="user_name" name="user_name" placeholder="账号">-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-2 control-label">密码</label>-->
+<!--                <div class="col-sm-10">-->
+<!--                    <input type="password"  class="form-control" readonly="readonly" id="password" name="password" placeholder="密码">-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-2 control-label">确认密码</label>-->
+<!--                <div class="col-sm-10">-->
+<!--                    <input type="password"  class="form-control" readonly="readonly" id="c_password" placeholder="确认密码">-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            --><?php //}else{ ?>
+<!--                <div class="form-group">-->
+<!--                    <label class="col-sm-2 control-label">账号</label>-->
+<!--                    <div class="col-sm-10">-->
+<!--                        <input type="text"  class="form-control" readonly="readonly" id="user_name" value="--><?php //echo $ecs_user['user_name'];?><!--" placeholder="账号">-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            --><?php //} ?>
             <h3>财务信息</h3>
             <div class="form-group">
                 <label class="col-sm-2 control-label">开户名称</label>
@@ -270,7 +276,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label">纳税人识别号</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="taxes_no"  value="<?php echo $customer['taxes_no']?>" name="taxes" placeholder="纳税人识别号">
+                    <input type="text"  class="form-control" id="taxes_no"  value="<?php echo $customer['taxes']?>" name="taxes" placeholder="纳税人识别号">
                 </div>
             </div>
 

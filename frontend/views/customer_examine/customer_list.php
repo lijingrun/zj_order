@@ -14,9 +14,14 @@
             data : {"id" : id, "type" : type},
             success : function(data){
                 if(data == 111){
+                    alert("操作成功！");
                     location.reload();
+                }else if(data == 222){
+                    alert("服务器繁忙，请稍后重试");
+                }else if(data == 333){
+                    alert("商城客户已经存在");
                 }else{
-                    alert("错误");
+                    alert(data);
                 }
             }
         });

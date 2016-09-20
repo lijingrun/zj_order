@@ -48,7 +48,7 @@ class CustomerController extends Controller{
     }
 
     public function actionIndex(){
-        $all_customers = Customer::find()->where("user_id =".Yii::$app->session['user_id'])->andWhere("del = 0");
+        $all_customers = Customer::find();
         $key_word = $_GET['key_word'];
         if(!empty($key_word)){
             $all_customers->andWhere("customer_name like '%".$key_word."%'");
@@ -57,9 +57,10 @@ class CustomerController extends Controller{
         $customers = $all_customers->offset($page->offset)->limit($page->limit)->all();
         foreach($customers as $key=>$customer){
             $customers[$key]['type_id'] = Customer_type::find()->where("rank_id = ".$customer['type_id'])->asArray()->one();
-            if(!empty($customer['customer_id'])) {
-                $customers[$key]['customer_id'] = Ecs_user::find()->where("user_id =" . $customer['customer_id'])->asArray()->one();
-            }
+            $customers[$key]['user_id'] = \common\models\User::find()->where("id = ".$customer['user_id'])->asArray()->one();
+//            if(!empty($customer['customer_id'])) {
+//                $customers[$key]['customer_id'] = Ecs_user::find()->where("user_id =" . $customer['customer_id'])->asArray()->one();
+//            }
         }
         return $this->render("customer_list",[
             'customers' => $customers,
@@ -75,7 +76,7 @@ class CustomerController extends Controller{
                 Yii::$app->getSession()->setFlash('error','信息不能为空');
                 return;
             }
-            $user_id = Yii::$app->session['user_id'];
+//            $user_id = Yii::$app->session['user_id'];
             $province = Region::find()->where("region_id =".$_POST['province'])->asArray()->one();
             $city = Region::find()->where("region_id =".$_POST['city'])->asArray()->one();
             $check_customer = Customer::find()->where("del = 0")->andWhere("customer_name = '".$_POST['customer_name']."'")->one();
@@ -85,6 +86,7 @@ class CustomerController extends Controller{
             }
             $customer = new Customer();
             $customer->customer_name = $_POST['customer_name']; //客户名
+            $customer->license_id = $_POST['license_id']; //客户名
             $customer->customer_code = $_POST['customer_code']; //客户编码
             $customer->province_id = $_POST['province']; //所在省份
             $customer->province = $province['region_name']; //所在省份
@@ -104,7 +106,7 @@ class CustomerController extends Controller{
             $customer->qq = $_POST['qq'];
             $customer->log_code = $_POST['log_code']; //物流编码
             $customer->spare = $_POST['spare'];
-            $customer->user_id = $user_id;
+            $customer->user_id = $_POST['sale_id'];
             //财务信息
             $customer->ban_name = $_POST['ban_name'];
             $customer->ban = $_POST['ban'];
@@ -113,30 +115,30 @@ class CustomerController extends Controller{
             $customer->taxes = $_POST['taxes'];
 
             //商城账号信息
-            $user_name = $_POST['user_name'];
-            $password = $_POST['password'];
-            if(!empty($user_name)) {
-                //先查用户名是否已经注册商城账号，如果有，就重新写一个
-                $ecs_user = Ecs_user::find()->where("user_name ='" . $user_name."'")->count();
-                if ($ecs_user > 0) {
-                    Yii::$app->getSession()->setFlash('error', '商城账号已经存在！');
-                    return $this->redirect("index.php?r=customer/add");
-                } else {
-                    $new_ecs_user = new Ecs_user();
-                    $new_ecs_user->user_name = $user_name;
-                    $new_ecs_user->password = md5($password);
-                    $new_ecs_user->email = $_POST['email'];
-                    $new_ecs_user->user_rank = $_POST['type_id'];
-                    $new_ecs_user->office_phone = $_POST['phone'];
-                    $new_ecs_user->mobile_phone = $_POST['tel_phone'];
-                    if ($new_ecs_user->save()) {
-                        $customer->customer_id = $new_ecs_user['user_id'];
-                    } else {
-                        Yii::$app->getSession()->setFlash('error', "服务器繁忙，请稍后重试！");
-                        return $this->redirect("index.php?r=customer/add");
-                    }
-                }
-            }
+//            $user_name = $_POST['user_name'];
+//            $password = $_POST['password'];
+//            if(!empty($user_name)) {
+//                //先查用户名是否已经注册商城账号，如果有，就重新写一个
+//                $ecs_user = Ecs_user::find()->where("user_name ='" . $user_name."'")->count();
+//                if ($ecs_user > 0) {
+//                    Yii::$app->getSession()->setFlash('error', '商城账号已经存在！');
+//                    return $this->redirect("index.php?r=customer/add");
+//                } else {
+//                    $new_ecs_user = new Ecs_user();
+//                    $new_ecs_user->user_name = $user_name;
+//                    $new_ecs_user->password = md5($password);
+//                    $new_ecs_user->email = $_POST['email'];
+//                    $new_ecs_user->user_rank = $_POST['type_id'];
+//                    $new_ecs_user->office_phone = $_POST['phone'];
+//                    $new_ecs_user->mobile_phone = $_POST['tel_phone'];
+//                    if ($new_ecs_user->save()) {
+//                        $customer->customer_id = $new_ecs_user['user_id'];
+//                    } else {
+//                        Yii::$app->getSession()->setFlash('error', "服务器繁忙，请稍后重试！");
+//                        return $this->redirect("index.php?r=customer/add");
+//                    }
+//                }
+//            }
 
             if($customer->save()){
                 return $this->redirect('index.php?r=customer');
@@ -147,8 +149,10 @@ class CustomerController extends Controller{
         }else {
             $provinces = Region::find()->where("parent_id = 1")->asArray()->all();
             $customer_types = Customer_type::find()->asArray()->all();
+            $sales = \common\models\User::find()->where("status = 10")->asArray()->all();
             return $this->render("add", [
                 'provinces' => $provinces,
+                'sales' => $sales,
                 'customer_types' => $customer_types,
             ]);
         }
@@ -195,6 +199,7 @@ class CustomerController extends Controller{
             $customer->address = $_POST['address']; //详细地址
             $customer->zip_code = $_POST['zip_code']; //邮编
             $customer->phone = $_POST['phone']; //电话
+            $customer->user_id = $_POST['sale_id']; //对应业务员
             if($customer->status == 3){
                 $customer->status = 1;
             }
@@ -230,10 +235,12 @@ class CustomerController extends Controller{
             $provinces = Region::find()->where("parent_id = 1")->asArray()->all();
             $citys = Region::find()->where("parent_id =".$customer['province_id'])->asArray()->all();
             $types = Customer_type::find()->asArray()->all();
+            $sales = \common\models\User::find()->where("status = 10")->asArray()->all();
             return $this->render("edit",[
                 'provinces' => $provinces,
                 'citys' => $citys,
                 'customer_types' => $types,
+                'sales' => $sales,
                 'customer' => $customer,
                 'ecs_user' => $ecs_user,
             ]);

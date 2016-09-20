@@ -36,6 +36,15 @@
     function check_data(){
         $("#form").submit();
     }
+    function cal_data(){
+        var coe = $("#invoice_den").val()/100;
+        var price = $("#price").val();
+        var goods_numbers = $("#goods_numbers").val();
+        var goods_amount = price*goods_numbers;
+        var invoice_money = goods_amount*coe;
+        $("#goods_amount").val(goods_amount);
+        $("#invoice_money").val(invoice_money);
+    }
 </script>
 <div>
 
@@ -72,7 +81,7 @@
             <label class="col-sm-2 control-label"><span style="color:red;">*</span>发票点数（票面金额）</label>
             <div class="col-sm-10">
                 <div class="input-group">
-                    <input type="text"  class="form-control" id="invoice_den" name="invoice_den" placeholder="发票点数">
+                    <input type="text"  class="form-control" id="invoice_den" name="invoice_den" placeholder="发票点数" onblur="cal_data();">
                       <span class="input-group-btn">
                         <button class="btn btn-default" type="button">%</button>
                       </span>
@@ -116,25 +125,25 @@
         <div class="form-group">
             <label class="col-sm-2 control-label"><span style="color:red;">*</span>单价</label>
             <div class="col-sm-10">
-                <input type="text"  class="form-control" id="price" name="price" placeholder="单价">
+                <input type="text"  class="form-control" id="price" name="price" onblur="cal_data();" placeholder="单价">
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-2 control-label"><span style="color:red;">*</span>数量</label>
             <div class="col-sm-10">
-                <input type="text"  class="form-control" id="goods_numbers" name="goods_numbers" placeholder="数量">
+                <input type="text"  class="form-control" id="goods_numbers" name="goods_numbers" onblur="cal_data();" placeholder="数量">
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-2 control-label"><span style="color:red;">*</span>金额</label>
             <div class="col-sm-10">
-                <input type="text"  class="form-control" id="goods_amount" name="goods_amount" placeholder="金额">
+                <input type="text"  class="form-control" id="goods_amount" readonly="readonly" name="goods_amount" placeholder="金额">
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-2 control-label"><span style="color:red;">*</span>应收税金</label>
             <div class="col-sm-10">
-                <input type="text"  class="form-control" id="invoice_money" name="invoice_money" placeholder="应收税金">
+                <input type="text"  class="form-control" id="invoice_money" readonly="readonly" name="invoice_money" placeholder="应收税金">
             </div>
         </div>
         <div class="form-group">

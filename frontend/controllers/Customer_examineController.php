@@ -10,6 +10,7 @@ namespace frontend\controllers;
 
 use common\models\Customer;
 use common\models\Customer_type;
+use common\models\Ecs_user;
 use common\models\User;
 use common\models\User_rule;
 use Yii;
@@ -61,6 +62,35 @@ class Customer_examineController extends Controller{
             $type = $_POST['type'];
             $customer = Customer::find()->where("id =".$id)->one();
             $customer->status = $type;
+//            $customer = Customer::find()->where("id =".$id)->asArray()->one();
+            //如果是通过，并且为有关联商城账号id，就新建一个商城账号
+            if($type == 2 && empty($customer->customer_id)){
+                $user_name = $customer->customer_name;
+//                echo $user_name;exit;
+                $password = rand(100000,999999);
+                if(!empty($user_name)) {
+                    //先查用户名是否已经注册商城账号，如果有，就重新写一个
+                    $ecs_user = Ecs_user::find()->where("user_name ='" . $user_name."'")->count();
+                    if ($ecs_user > 0) {
+                        echo 333;
+                        exit;
+                    } else {
+                        $new_ecs_user = new Ecs_user();
+                        $new_ecs_user->user_name = $user_name;
+                        $new_ecs_user->password = md5($password);
+                        $new_ecs_user->email = $customer->email;
+                        $new_ecs_user->user_rank = $customer->type_id;
+                        $new_ecs_user->office_phone = $customer->phone;
+                        $new_ecs_user->mobile_phone = $customer->telephone;
+                        if ($new_ecs_user->save()) {
+                            $customer->customer_id = $new_ecs_user['user_id'];
+                            $customer->default_ps = $password;
+                        } else {
+                            echo 222;exit;
+                        }
+                    }
+                }
+            }
             if($customer->save()){
                 echo 111;
             }else{

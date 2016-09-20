@@ -33,6 +33,7 @@
         var customer_name = $("#customer_name").val().trim();
         var phone = $("#phone").val().trim();
         var ec_account = $("#ec_account").is(':checked');
+        var license_id = $("#license_id").val().trim();
         if(ec_account){
             var user_name = $("#user_name").val().trim();
             var password = $("#password").val();
@@ -45,7 +46,7 @@
                 $("#form").submit();
             }
         }else{
-            if(customer_name == '' || phone == ''){
+            if(customer_name == '' || phone == '' || license_id == ''){
                 alert("请填写相关内容！");
             }else{
                 $("#form").submit();
@@ -76,9 +77,26 @@
                 </div>
             </div>
             <div class="form-group">
+                <label class="col-sm-2 control-label"><span style="color:red;">*</span>营业执照号</label>
+                <div class="col-sm-10">
+                    <input type="text"  class="form-control" id="license_id" name="license_id" placeholder="营业执照号">
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="col-sm-2 control-label">客户编码</label>
                 <div class="col-sm-10">
                     <input type="text"  class="form-control" id="customer_code" name="customer_code" placeholder="客户编码">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">业务员</label>
+                <div class="col-sm-10">
+                    <select name="sale_id" id="province" class="form-control" style="width: 180px;">
+<!--                        <option value="0">请选择业务员</option>-->
+                        <?php foreach($sales as $sale): ?>
+                            <option value="<?php echo $sale['id']?>"><?php echo $sale['username'];?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
             <div class="form-group">
@@ -180,35 +198,35 @@
                     <input type="text"  class="form-control" id="spare" name="spare" placeholder="备用信息">
                 </div>
             </div>
-            <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="ec_account" onclick="input_ec();" />
-                            <span style="color:red;">开通订货账号</span>
-                            (开通订货账号,代理商才能进入系统订货）
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">账号</label>
-                <div class="col-sm-10">
-                    <input type="text"  class="form-control" readonly="readonly" id="user_name" name="user_name" placeholder="账号">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">密码</label>
-                <div class="col-sm-10">
-                    <input type="password"  class="form-control" readonly="readonly" id="password" name="password" placeholder="密码">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">确认密码</label>
-                <div class="col-sm-10">
-                    <input type="password"  class="form-control" readonly="readonly" id="c_password" placeholder="确认密码">
-                </div>
-            </div>
+<!--            <div class="form-group">-->
+<!--                <div class="col-sm-offset-2 col-sm-10">-->
+<!--                    <div class="checkbox">-->
+<!--                        <label>-->
+<!--                            <input type="checkbox" id="ec_account" onclick="input_ec();" />-->
+<!--                            <span style="color:red;">开通订货账号</span>-->
+<!--                            (开通订货账号,代理商才能进入系统订货）-->
+<!--                        </label>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-2 control-label">账号</label>-->
+<!--                <div class="col-sm-10">-->
+<!--                    <input type="text"  class="form-control" readonly="readonly" id="user_name" name="user_name" placeholder="账号">-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-2 control-label">密码</label>-->
+<!--                <div class="col-sm-10">-->
+<!--                    <input type="password"  class="form-control" readonly="readonly" id="password" name="password" placeholder="密码">-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-2 control-label">确认密码</label>-->
+<!--                <div class="col-sm-10">-->
+<!--                    <input type="password"  class="form-control" readonly="readonly" id="c_password" placeholder="确认密码">-->
+<!--                </div>-->
+<!--            </div>-->
         <h3>财务信息</h3>
             <div class="form-group">
                 <label class="col-sm-2 control-label">开户名称</label>
