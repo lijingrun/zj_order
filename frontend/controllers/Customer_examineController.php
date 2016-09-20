@@ -82,6 +82,7 @@ class Customer_examineController extends Controller{
                         $new_ecs_user->user_rank = $customer->type_id;
                         $new_ecs_user->office_phone = $customer->phone;
                         $new_ecs_user->mobile_phone = $customer->telephone;
+                        $new_ecs_user->is_validated = 1;
                         if ($new_ecs_user->save()) {
                             $customer->customer_id = $new_ecs_user['user_id'];
                             $customer->default_ps = $password;
@@ -98,6 +99,17 @@ class Customer_examineController extends Controller{
             }
             exit;
         }
+    }
+
+    public function actionDetail(){
+        $id = $_GET['id'];
+        $id = $_GET['id'];
+        $customer = Customer::find()->where("id =".$id)->asArray()->one();
+        $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one();
+        return $this->render("detail",[
+            'customer' => $customer,
+            'rank' => $rank,
+        ]);
     }
 
 }

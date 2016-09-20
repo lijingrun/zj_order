@@ -163,16 +163,16 @@ class CustomerController extends Controller{
         $id = $_GET['id'];
         $customer = Customer::find()->where("id =".$id)->asArray()->one();
         $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one();
-        if(!empty($customer['user_id'])){
-            $user = Ecs_user::find()->where("user_id =".$customer['user_id'])->asArray()->one();
-            $user_name = $user['user_name'];
-        }else{
-            $user_name = "未开通";
-        }
+//        if(!empty($customer['user_id'])){
+//            $user = Ecs_user::find()->where("user_id =".$customer['user_id'])->asArray()->one();
+//            $user_name = $user['user_name'];
+//        }else{
+//            $user_name = "未开通";
+//        }
         return $this->render("detail",[
             'customer' => $customer,
             'rank' => $rank,
-            'user_name' => $user_name,
+//            'user_name' => $user_name,
         ]);
     }
 

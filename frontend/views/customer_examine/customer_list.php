@@ -47,6 +47,9 @@
             <td><?php echo $val['type_id']['rank_name']?></td>
             <td><?php echo $val['customer_code']?></td>
             <td>
+                <a href="index.php?r=customer_examine/detail&id=<?php echo $val['id'];?>">
+                    <button class="btn-info">查看详细</button>
+                </a>
                 <button class="btn-success" onclick="pass(<?php echo $val['id']?>,2);">通过</button>
                 <button class="btn-danger" onclick="pass(<?php echo $val['id']?>,3)">不通过</button>
             </td>
