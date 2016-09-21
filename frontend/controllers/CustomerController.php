@@ -251,11 +251,11 @@ class CustomerController extends Controller{
     public function actionDel_customer(){
         if(Yii::$app->request->post()){
             $id = $_POST['id'];
-            $customer = Customer::find()->where("id =".$id)->one();
-            $customer->del = 1;
-            $ecs_user = Ecs_user::find()->where("user_id =".$customer->customer_id)->one();
-            $ecs_user->is_validated = 2;
-            if($customer->save() && $ecs_user->save()){
+            $customer = Customer::find()->where("id =".$id)->asArray()->one();
+//            $customer->del = 1;
+//            $ecs_user = Ecs_user::find()->where("user_id =".$customer->customer_id)->one();
+//            $ecs_user->is_validated = 2;
+            if(Customer::deleteAll("id =".$id) && Ecs_user::deleteAll("user_id = ".$customer['customer_id'])){
                 $data = $this->return_json(0,'操作成功！');
             }else{
                 $data = $this->return_json(1,'服务器繁忙，请稍后重试！');
@@ -607,6 +607,49 @@ class CustomerController extends Controller{
                 'citys' => $citys,
             ]);
 
+        }
+    }
+
+    public function actionParent(){
+        $customer_id = $_GET['id'];
+        $customer = Customer::find()->where("id = ".$customer_id)->asArray()->one();
+        if(Yii::$app->request->post()){
+            $up_id = $_POST['up_id'];
+            if($customer_id == $up_id){
+                Yii::$app->getSession()->setFlash('error','不能设置自己为上级分销');
+                return $this->redirect("index.php?r=customer/parent&id=".$customer_id);
+            }
+            $ecs_user = Ecs_user::find()->where("user_id =".$customer['customer_id'])->one();
+            $up_customer = Customer::find()->where("id =".$up_id)->asArray()->one();
+            $up_user = Ecs_user::find()->where("user_id =".$up_customer['customer_id'])->asArray()->one();
+            $ecs_user->parent_id = $up_user['user_id'];
+            $new_customer = Customer::find()->where("id = ".$customer_id)->one();
+            $new_customer->parent = $up_customer['customer_name'];
+            if($ecs_user->save() && $new_customer->save()){
+                Yii::$app->getSession()->setFlash('success','操作成功！');
+                return $this->redirect("index.php?r=customer");
+            }
+        }else{
+            return $this->render('parent',[
+                'customer' => $customer,
+            ]);
+        }
+    }
+
+    //根据名称获取客户列表
+    public function actionGet_customer(){
+        if(Yii::$app->request->post()){
+            $name = $_POST['name'];
+            if(!empty($name)){
+                $customers = Customer::find()->where("customer_name like '%".$name."%'")->andWhere("customer_id != 0")->asArray()->all();
+                if(!empty($customers)){
+                    foreach($customers as $customer):
+                        echo "<option value='".$customer['id']."'>".$customer['customer_name']."</option>";
+                    endforeach;
+                }else{
+                    echo "没有找到相应的客户";
+                }
+            }
         }
     }
 

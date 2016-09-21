@@ -51,6 +51,7 @@ use yii\widgets\LinkPager;
             <th>联系人</th>
             <th>联系方式</th>
             <th>状态</th>
+            <th>上级分销</th>
             <th>操作</th>
         </tr>
         <?php foreach($customers as $customer): ?>
@@ -83,13 +84,17 @@ use yii\widgets\LinkPager;
                 ?>
             </td>
             <td>
+                <?php echo $customer['parent']?>
+                <a href="index.php?r=customer/parent&id=<?php echo $customer['id']?>">[设置]</a>
+            </td>
+            <td>
                 <a href="index.php?r=customer/edit&id=<?php echo $customer['id'];?>">修改</a>
                 <a href="#" onclick="del_customer(<?php echo $customer['id'];?>);">删除</a>
             </td>
         </tr>
         <?php endforeach; ?>
         <tr>
-            <td colspan="8" align="center">
+            <td colspan="9" align="center">
                 <?= LinkPager::widget(['pagination' => $pages]); ?>
             </td>
         </tr>
