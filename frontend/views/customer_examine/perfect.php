@@ -73,13 +73,13 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label"><span style="color:red;">*</span>客户名称</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="customer_name" name="customer_name" placeholder="客户名称">
+                    <input type="text"  class="form-control" id="customer_name" name="customer_name" value="<?php echo $user_info['user_name']?>" readonly="readonly">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label"><span style="color:red;">*</span>营业执照号</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="license_id" name="license_id" placeholder="营业执照号">
+                    <input type="text"  class="form-control" id="license_id" name="license_id"  value="<?php echo $user_info['license_id']?>" readonly="readonly">
                 </div>
             </div>
             <div class="form-group">
@@ -92,7 +92,7 @@
                 <label class="col-sm-2 control-label">业务员</label>
                 <div class="col-sm-10">
                     <select name="sale_id" class="form-control" style="width: 180px;">
-<!--                        <option value="0">请选择业务员</option>-->
+                        <!--                        <option value="0">请选择业务员</option>-->
                         <?php foreach($sales as $sale): ?>
                             <option value="<?php echo $sale['id']?>"><?php echo $sale['username'];?></option>
                         <?php endforeach; ?>
@@ -105,7 +105,7 @@
                     <select name="province" id="province" class="form-control" style="width: 180px;" onchange="get_city();">
                         <option value="0">请选择客户所在省份</option>
                         <?php foreach($provinces as $province): ?>
-                        <option value="<?php echo $province['region_id']?>"><?php echo $province['region_name'];?></option>
+                            <option value="<?php echo $province['region_id']?>"><?php echo $province['region_name'];?></option>
                         <?php endforeach; ?>
                     </select>
                     <br />
@@ -117,7 +117,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label">详细地址</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="address" name="address" placeholder="详细地址">
+                    <input type="text"  class="form-control" value="<?php echo $user_info['address']?>" id="address" name="address" placeholder="详细地址">
                 </div>
             </div>
             <div class="form-group">
@@ -129,7 +129,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label"><span style="color:red;">*</span>电话</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="phone" name="phone" placeholder="电话">
+                    <input type="text"  class="form-control" id="phone" value="<?php echo $user_info['phone']?>" name="phone" placeholder="电话">
                 </div>
             </div>
             <div class="form-group">
@@ -143,7 +143,7 @@
                 <div class="col-sm-10">
                     <select id="type_id" name="type_id" class="form-control" style="width: 180px;">
                         <?php foreach($customer_types as $type): ?>
-                        <option value="<?php echo $type['rank_id']?>"><?php echo $type['rank_name']?></option>
+                            <option value="<?php echo $type['rank_id']?>"><?php echo $type['rank_name']?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -159,7 +159,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label">姓名</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="name" name="name" placeholder="姓名">
+                    <input type="text"  class="form-control" id="name" name="name" value="<?php echo $user_info['contacts']?>" >
                 </div>
             </div>
             <div class="form-group">
@@ -171,7 +171,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label">手机</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="telephone" name="telephone" placeholder="手机">
+                    <input type="text"  class="form-control" id="telephone" name="telephone" value="<?php echo $user_info['phone']?>">
                 </div>
             </div>
             <div class="form-group">
@@ -198,36 +198,36 @@
                     <input type="text"  class="form-control" id="spare" name="spare" placeholder="备用信息">
                 </div>
             </div>
-<!--            <div class="form-group">-->
-<!--                <div class="col-sm-offset-2 col-sm-10">-->
-<!--                    <div class="checkbox">-->
-<!--                        <label>-->
-<!--                            <input type="checkbox" id="ec_account" onclick="input_ec();" />-->
-<!--                            <span style="color:red;">开通订货账号</span>-->
-<!--                            (开通订货账号,代理商才能进入系统订货）-->
-<!--                        </label>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            <div class="form-group">-->
-<!--                <label class="col-sm-2 control-label">账号</label>-->
-<!--                <div class="col-sm-10">-->
-<!--                    <input type="text"  class="form-control" readonly="readonly" id="user_name" name="user_name" placeholder="账号">-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            <div class="form-group">-->
-<!--                <label class="col-sm-2 control-label">密码</label>-->
-<!--                <div class="col-sm-10">-->
-<!--                    <input type="password"  class="form-control" readonly="readonly" id="password" name="password" placeholder="密码">-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            <div class="form-group">-->
-<!--                <label class="col-sm-2 control-label">确认密码</label>-->
-<!--                <div class="col-sm-10">-->
-<!--                    <input type="password"  class="form-control" readonly="readonly" id="c_password" placeholder="确认密码">-->
-<!--                </div>-->
-<!--            </div>-->
-        <h3>财务信息</h3>
+            <!--            <div class="form-group">-->
+            <!--                <div class="col-sm-offset-2 col-sm-10">-->
+            <!--                    <div class="checkbox">-->
+            <!--                        <label>-->
+            <!--                            <input type="checkbox" id="ec_account" onclick="input_ec();" />-->
+            <!--                            <span style="color:red;">开通订货账号</span>-->
+            <!--                            (开通订货账号,代理商才能进入系统订货）-->
+            <!--                        </label>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--            </div>-->
+            <!--            <div class="form-group">-->
+            <!--                <label class="col-sm-2 control-label">账号</label>-->
+            <!--                <div class="col-sm-10">-->
+            <!--                    <input type="text"  class="form-control" readonly="readonly" id="user_name" name="user_name" placeholder="账号">-->
+            <!--                </div>-->
+            <!--            </div>-->
+            <!--            <div class="form-group">-->
+            <!--                <label class="col-sm-2 control-label">密码</label>-->
+            <!--                <div class="col-sm-10">-->
+            <!--                    <input type="password"  class="form-control" readonly="readonly" id="password" name="password" placeholder="密码">-->
+            <!--                </div>-->
+            <!--            </div>-->
+            <!--            <div class="form-group">-->
+            <!--                <label class="col-sm-2 control-label">确认密码</label>-->
+            <!--                <div class="col-sm-10">-->
+            <!--                    <input type="password"  class="form-control" readonly="readonly" id="c_password" placeholder="确认密码">-->
+            <!--                </div>-->
+            <!--            </div>-->
+            <h3>财务信息</h3>
             <div class="form-group">
                 <label class="col-sm-2 control-label">开户名称</label>
                 <div class="col-sm-10">

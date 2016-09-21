@@ -48,7 +48,7 @@ class CustomerController extends Controller{
     }
 
     public function actionIndex(){
-        $all_customers = Customer::find();
+        $all_customers = Customer::find()->where("del = 0");
         $key_word = $_GET['key_word'];
         if(!empty($key_word)){
             $all_customers->andWhere("customer_name like '%".$key_word."%'");
@@ -251,9 +251,11 @@ class CustomerController extends Controller{
     public function actionDel_customer(){
         if(Yii::$app->request->post()){
             $id = $_POST['id'];
-            $customer = Customer::find()->where("id =".$id)->andWhere("user_id =".Yii::$app->session['user_id'])->one();
+            $customer = Customer::find()->where("id =".$id)->one();
             $customer->del = 1;
-            if($customer->save()){
+            $ecs_user = Ecs_user::find()->where("user_id =".$customer->customer_id)->one();
+            $ecs_user->is_validated = 2;
+            if($customer->save() && $ecs_user->save()){
                 $data = $this->return_json(0,'操作成功！');
             }else{
                 $data = $this->return_json(1,'服务器繁忙，请稍后重试！');
