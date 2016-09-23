@@ -653,4 +653,13 @@ class CustomerController extends Controller{
         }
     }
 
+    //根据省份城市，获取客户编码内容
+    public function actionGet_code(){
+        $province_id = $_POST['province_id'];
+        $city_id = $_POST['city_id'];
+        $code = $this->get_code($province_id,$city_id);
+        echo $code;
+        exit;
+    }
+
 }

@@ -33,6 +33,7 @@
     }
     function get_city(){
         var province_id = $("#province").val();
+        $("#customer_code").val('');
         $("#city").html('');
         if(province_id != 0){
             $.ajax({
@@ -49,6 +50,7 @@
         var customer_name = $("#customer_name").val().trim();
         var phone = $("#phone").val().trim();
         var ec_account = $("#ec_account").is(':checked');
+        var customer_code = $("#customer_code").val();
         if(ec_account){
             var user_name = $("#user_name").val().trim();
             var password = $("#password").val();
@@ -61,7 +63,7 @@
                 $("#form").submit();
             }
         }else{
-            if(customer_name == '' || phone == ''){
+            if(customer_name == '' || phone == '' || license_id == '' || customer_code == ''){
                 alert("请填写相关内容！");
             }else{
                 $("#form").submit();
@@ -78,6 +80,22 @@
             $("#user_name").attr('readonly' , 'readonly');
             $("#password").attr('readonly' , 'readonly');
             $("#c_password").attr('readonly' , 'readonly');
+        }
+    }
+    function get_code(){
+        var province_id = $("#province").val();
+        var city_id = $("#city").val();
+        if(province_id > 0 && city_id > 0){
+            $.ajax({
+                type : 'post',
+                url : 'index.php?r=customer/get_code',
+                data : {'province_id' : province_id, 'city_id' : city_id},
+                success : function(data){
+                    $("#customer_code").val(data);
+                }
+            });
+        }else{
+            alert("请选择客户所在省份和地区");
         }
     }
 </script>
@@ -106,7 +124,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label">业务员</label>
                 <div class="col-sm-10">
-                    <select name="sale_id" id="province" class="form-control" style="width: 180px;">
+                    <select name="sale_id"  class="form-control" style="width: 180px;">
                         <!--                        <option value="0">请选择业务员</option>-->
                         <?php foreach($sales as $sale): ?>
                             <option value="<?php echo $sale['id']?>" <?php if($sale['id'] == $customer['user_id']){echo "selected";}?>>
@@ -128,7 +146,7 @@
                         <?php endforeach; ?>
                     </select>
                     <br />
-                    <select name="city" id="city" class="form-control" style="width: 180px;">
+                    <select name="city" id="city" class="form-control" style="width: 180px;" onchange="get_code();">
                         <?php foreach($citys as $city): ?>
                         <option value="<?php echo $city['region_id']?>" <?php if($city['region_id'] == $customer['city_id']){ echo "selected";}?>>
                             <?php echo $city['region_name']; ?>

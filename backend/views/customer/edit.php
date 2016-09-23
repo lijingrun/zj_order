@@ -88,7 +88,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label"><span style="color:red;">*</span>客户名称</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="customer_name" value="<?php echo $customer['customer_name']?>" name="customer_name" placeholder="客户名称">
+                    <input type="text"  class="form-control" readonly="readonly" id="customer_name" value="<?php echo $customer['customer_name']?>" name="customer_name" placeholder="客户名称">
                 </div>
             </div>
             <div class="form-group">
@@ -100,7 +100,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label">客户编码</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="customer_code" value="<?php echo $customer['customer_code']?>" name="customer_code" placeholder="客户编码">
+                    <input type="text"  class="form-control" readonly="readonly" id="customer_code" value="<?php echo $customer['customer_code']?>" name="customer_code" placeholder="客户编码">
                 </div>
             </div>
             <div class="form-group">

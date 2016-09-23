@@ -17,6 +17,7 @@
 <script>
     function get_city(){
         var province_id = $("#province").val();
+        $("#customer_code").val('');
         $("#city").html('');
         if(province_id != 0){
             $.ajax({
@@ -34,6 +35,7 @@
         var phone = $("#phone").val().trim();
         var ec_account = $("#ec_account").is(':checked');
         var license_id = $("#license_id").val().trim();
+        var customer_code = $("#customer_code").val();
         if(ec_account){
             var user_name = $("#user_name").val().trim();
             var password = $("#password").val();
@@ -46,7 +48,7 @@
                 $("#form").submit();
             }
         }else{
-            if(customer_name == '' || phone == '' || license_id == ''){
+            if(customer_name == '' || phone == '' || license_id == '' || customer_code == ''){
                 alert("请填写相关内容！");
             }else{
                 $("#form").submit();
@@ -63,6 +65,22 @@
             $("#user_name").attr('readonly' , 'readonly');
             $("#password").attr('readonly' , 'readonly');
             $("#c_password").attr('readonly' , 'readonly');
+        }
+    }
+    function get_code(){
+        var province_id = $("#province").val();
+        var city_id = $("#city").val();
+        if(province_id > 0 && city_id > 0){
+            $.ajax({
+                type : 'post',
+                url : 'index.php?r=customer/get_code',
+                data : {'province_id' : province_id, 'city_id' : city_id},
+                success : function(data){
+                    $("#customer_code").val(data);
+                }
+            });
+        }else{
+            alert("请选择客户所在省份和地区");
         }
     }
 </script>
@@ -83,9 +101,9 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-2 control-label">客户编码</label>
+                <label class="col-sm-2 control-label"><span style="color:red;">*</span>客户编码</label>
                 <div class="col-sm-10">
-                    <input type="text"  class="form-control" id="customer_code" name="customer_code" placeholder="客户编码">
+                    <input type="text"  class="form-control" readonly="readonly" id="customer_code" name="customer_code">
                 </div>
             </div>
             <div class="form-group">
@@ -109,7 +127,7 @@
                         <?php endforeach; ?>
                     </select>
                     <br />
-                    <select name="city" id="city" class="form-control" style="width: 180px;">
+                    <select name="city"  id="city" class="form-control" style="width: 180px;" onchange="get_code();">
 
                     </select>
                 </div>
