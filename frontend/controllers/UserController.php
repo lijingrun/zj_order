@@ -7,6 +7,7 @@
  */
 namespace frontend\controllers;
 
+use common\models\Customer;
 use common\models\Role;
 use common\models\User;
 use common\models\User_rule;
@@ -134,7 +135,7 @@ class UserController extends Controller{
         if($model->load(Yii::$app->request->post()) && $model->validate()){
             $user = new User();
             $user->username = $model['username'];
-            $user->type_id = $model['user_type'];
+//            $user->type_id = $model['user_type'];
             $user->setPassword($model['password']);
             $user->generateAuthKey();
             $user->created_at = time();
@@ -185,4 +186,56 @@ class UserController extends Controller{
 
         }
     }
+
+    public function actionEdit(){
+        $id = $_GET['id'];
+        $user = User::find()->where("id =".$id)->asArray()->one();
+        if(Yii::$app->request->post()){
+            $username = $_POST['username'];
+            $password = $_POST['password'];
+            if(!empty($password)){
+                $user = User::find()->where("id =".$id)->one();
+                $user->username = $username;
+                $user->password_hash = Yii::$app->getSecurity()->generatePasswordHash($password);
+                if($user->save()){
+                    Yii::$app->getSession()->setFlash('success','操作成功！');
+                    return $this->redirect("index.php?r=user");
+                }else{
+                    Yii::$app->getSession()->setFlash('error','服务器繁忙，请稍后重试！');
+                    return $this->redirect("index.php?r=user");
+                }
+            }else{
+                $user = User::find()->where("id =".$id)->one();
+                $user->username = $username;
+                if($user->save()){
+                    Yii::$app->getSession()->setFlash('success','操作成功！');
+                    return $this->redirect("index.php?r=user");
+                }else{
+                    Yii::$app->getSession()->setFlash('error','服务器繁忙，请稍后重试！');
+                    return $this->redirect("index.php?r=user");
+                }
+            }
+        }else{
+            return $this->render("edit",[
+                'user' => $user,
+            ]);
+        }
+    }
+
+    public function actionDel_user(){
+        if(Yii::$app->request->post()){
+            $id = $_POST['id'];
+            $customer = Customer::find()->where("user_id =".$id)->asArray()->one();
+            if(!empty($customer)){
+                echo 222;
+                exit;
+            }else {
+                if (User::deleteAll("id =" . $id)) {
+                    echo 111;
+                    exit;
+                }
+            }
+        }
+    }
+
 }

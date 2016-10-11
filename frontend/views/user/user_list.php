@@ -6,7 +6,25 @@
  * Time: 21:08
  */
 ?>
-
+<script>
+    function del_user(id){
+        if(confirm("是否确定删除账号？")){
+            $.ajax({
+                type : 'post',
+                url : 'index.php?r=user/del_user',
+                data : {'id' : id},
+                success : function(data){
+                    if(data == 111){
+                        alert("操作成功！");
+                        location.reload();
+                    }else if(data == 222){
+                        alert("账号还有关联客户，需要取消关联之后才可以删除！");
+                    }
+                }
+            });
+        }
+    }
+</script>
 <div>
     <?php  ?>
     <a href="index.php?r=user/add">添加账号</a>
@@ -29,6 +47,12 @@
             <td>
                 <a href="index.php?r=user/rule&user_id=<?php echo $user['id'];?>">
                     设置权限
+                </a>
+                <a href="#" onclick="del_user(<?php echo $user['id'];?>);">
+                    删除
+                </a>
+                <a href="index.php?r=user/edit&id=<?php echo $user['id']?>">
+                    修改
                 </a>
             </td>
 <!--            <td>--><?php //echo $user['store']['store_name']?><!--</td>-->
