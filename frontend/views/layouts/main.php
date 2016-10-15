@@ -41,6 +41,7 @@ AppAsset::register($this);
         ['label' => '客户', 'url' => ['/customer']],
         ['label' => '发票', 'url' => ['/invoice']],
         ['label' => '客户审核', 'url' => ['/customer_examine']],
+        ['label' => '运费管理', 'url' => ['/freight']],
         ['label' => '账号', 'url' => ['/user']],
     ];
     if (Yii::$app->user->isGuest) {

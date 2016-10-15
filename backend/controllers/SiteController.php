@@ -2,6 +2,7 @@
 namespace backend\controllers;
 
 use common\models\Carema;
+use common\models\Ecs_user;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -17,6 +18,25 @@ use common\models\User;
  */
 class SiteController extends \frontend\controllers\SiteController
 {
+    public $enableCsrfValidation = false;
+    public $layout = 'site';
+    public function actionCustomer_login(){
+        if(Yii::$app->request->post()){
+            $user_name = trim($_POST['user_name']);
+            $password = md5(trim($_POST['password']));
+            $customer = Ecs_user::find()->where("user_name like '".$user_name."'")->andWhere("password like '".$password."'")->asArray()->one();
+            if(empty($customer)){
+                Yii::$app->getSession()->setFlash('error','账号/密码错误！');
+                return $this->redirect('index.php?r=site/customer_login');
+            }else{
+                Yii::$app->session['customer_id'] = $customer['user_id'];
+                Yii::$app->session['user_name'] = $customer['user_name'];
+                return $this->redirect("index.php?r=client");
+            }
+        }else{
+            return $this->render('customer_login');
+        }
+    }
 //    /**
 //     * @inheritdoc
 //     */

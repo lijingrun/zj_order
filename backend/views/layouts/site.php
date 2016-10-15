@@ -28,30 +28,29 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => '业务员订单系统',
+        'brandLabel' => '江门中建订单系统',
         'brandUrl' => 'index.php?r=customer',
         'options' => [
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
     $menuItems = [
-        ['label' => '商品', 'url' => ['/goods']],
-        ['label' => '订单', 'url' => ['/orders']],
-        ['label' => '统计', 'url' => ['/statistic']],
-        ['label' => '客户', 'url' => ['/customer']],
-        ['label' => '发票', 'url' => ['/invoice']],
-        ['label' => '重置密码', 'url' => ['/sale/reset_password']],
+        ['label' => '我是客户', 'url' => ['/site/customer_login']],
+        ['label' => '我是业务员', 'url' => ['/site/login']],
+//        ['label' => '统计', 'url' => ['/client/statistic']],
+//        ['label' => '客户', 'url' => ['/customer']],
+//        ['label' => '发票', 'url' => ['/invoice']],
+//        ['label' => '重置密码', 'url' => ['/client/reset_password']],
     ];
-    if (Yii::$app->user->isGuest) {
-//        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
-        $menuItems[] = ['label' => '登录', 'url' => ['/site/login']];
-    } else {
-        $menuItems[] = [
-            'label' => '登出 (' . Yii::$app->user->identity->username . ')',
-            'url' => ['/site/logout'],
-            'linkOptions' => ['data-method' => 'post']
-        ];
-    }
+//    if (empty(Yii::$app->session['customer_id'])) {
+//        $menuItems[] = ['label' => '登录', 'url' => ['/site/customer_login']];
+//    } else {
+//        $menuItems[] = [
+//            'label' => '登出 (' . Yii::$app->session['user_name'] . ')',
+//            'url' => ['/client/logout'],
+//            'linkOptions' => ['data-method' => 'post']
+//        ];
+//    }
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => $menuItems,

@@ -57,6 +57,15 @@
                 </div>
             </div>
         </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="freight"  value="1" <?php if($user_rule['freight'] == 1){echo "checked='checked'";}?>> 运费设置
+                    </label>
+                </div>
+            </div>
+        </div>
         <div >
             <input type="submit" value="确定" class="btn-success" />
         </div>

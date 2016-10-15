@@ -71,7 +71,6 @@ class GoodsController extends Controller{
     public function actionDetail(){
         $id = $_GET['id'];
         $goods = Goods::find()->where("goods_id =".$id)->asArray()->one();
-//        $member_price = Member_price::find()->where("goods_id =".$id)->asArray()->all();
         $ranks = Customer_type::find()->all();
         $member_price = array();
         foreach($ranks as $rank):
