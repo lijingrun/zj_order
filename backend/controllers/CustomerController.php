@@ -495,10 +495,6 @@ class CustomerController extends Controller{
                                     $gift->is_gift = 1;
                                 }
                                 break;
-//                            case 2 : echo 2;
-//                                break;
-//                            case 3 : echo 3;
-//                                break;
                         }
                     }
                 }

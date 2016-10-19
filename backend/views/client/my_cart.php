@@ -59,7 +59,7 @@
             </div>
                     <div class="panel-body">
                         数量：
-                        <input type="text" id="num<?php echo $val['cart_id'];?>" onblur="change_num(<?php echo $val['cart_id']?>);" value="<?php echo $val['num'];?>" style="width:30px;" <?php if($val['is_gift'] == 1){echo "readonly='readonly'";}?> />
+                        <input type="text" id="num<?php echo $val['cart_id'];?>" value="<?php echo $val['num'];?>" style="width:30px;" <?php if($val['is_gift'] == 1){echo "readonly='readonly'";}?> <?php if($val['is_gift'] == 1){ echo "readonly='readonly'";}else{echo "onblur='change_num(".$val['cart_id'].")'";}?> />
                         <span style="color:red;">
                             (库存<?php echo $val['goods_num']?>)
                         </span>

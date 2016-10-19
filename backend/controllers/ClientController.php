@@ -17,6 +17,8 @@ use common\models\Goods;
 use common\models\Member_price;
 use common\models\Order_goods;
 use common\models\Order_info;
+use common\models\Promotion;
+use common\models\Promotion_goods;
 use common\models\Region;
 use Yii;
 use yii\data\Pagination;
@@ -89,6 +91,11 @@ class ClientController extends Controller{
         $user = Ecs_user::find()->where("user_id =".$customer_id)->asArray()->one();
         $user_rank = $user['user_rank'];
         foreach($goods as $key=>$good):
+            echo $good['goods_id'];
+            $goods_promotion = $this->get_promotion($good['goods_id'],$user_rank);
+            if(!empty($goods_promotion)){
+                $goods[$key]['seller_note'] = $goods_promotion;
+            }
             $m_price = Member_price::find()->where("goods_id =".$good['goods_id'])->andWhere("user_rank =".$user_rank)->asArray()->one();
             if(!empty($m_price)) {
                 $goods[$key]['shop_price'] = $m_price['user_price'];
@@ -204,9 +211,11 @@ class ClientController extends Controller{
     public function actionAdd_to_cart(){
         if(Yii::$app->request->post()){
             $goods_id = $_POST['goods_id'];
+            $number = $_POST['number'];
             $customer_id = Yii::$app->session['customer_id'];
             $ec_customer = Customer::find()->where("customer_id =".$customer_id)->asArray()->one();
             $cart_check = Customer_cart::find()->where("goods_id =".$goods_id)->andWhere("customer_id =".$ec_customer['id'])->count();
+            $goods = Goods::find()->where("goods_id =".$goods_id)->asArray()->one();
             if($cart_check > 0){
                 echo 222;
                 exit;
@@ -214,12 +223,42 @@ class ClientController extends Controller{
                 $new_cart = new Customer_cart();
                 $new_cart->goods_id = $goods_id;
                 $new_cart->customer_id = $ec_customer['id'];
-                $new_cart->nums = 1;
+                $new_cart->goods_name = $goods['goods_name'];
+                $new_cart->nums = $number;
                 $new_cart->user_id = $ec_customer['user_id'];
-                if($new_cart->save()){
-                    echo 111;
+                $customer = Customer::find()->where("customer_id =".Yii::$app->session['customer_id'])->asArray()->one();
+                $promotion = $this->get_promotion($goods_id,$customer['type_id']);
+                if(!empty($promotion)){
+                    foreach($promotion as $val){
+                        switch($val['type']){
+                            //满送才增加数量，其他涉及价钱的在购物车里面体现
+                            case 1 :
+                                if($number >= $val['number']){
+                                    $coe = (floor($number/$val['number']))*$val['coefficient'];
+                                    $gift = new Customer_cart();
+                                    $gift->goods_id = $goods_id;
+                                    $gift->goods_name = $goods['goods_name']."(赠送)";
+                                    $gift->user_id = $customer['user_id'];
+                                    $gift->customer_id = $customer['id'];
+                                    $gift->nums = $coe;
+                                    $gift->is_gift = 1;
+                                }
+                                break;
+                        }
+                    }
+                }
+                if(!empty($gift)){
+                    if($gift->save() && $new_cart->save()){
+                        echo 111;
+                    }else{
+                        echo 333;
+                    }
                 }else{
-                    echo 333;
+                    if($new_cart->save()){
+                        echo 111;
+                    }else{
+                        echo 333;
+                    }
                 }
                 exit;
             }
@@ -246,10 +285,14 @@ class ClientController extends Controller{
             $cart_goods['goods_img'] = $goods['goods_img'];
             //查价钱
             $member_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
-            if(!empty($member_price['user_price'])){
-                $price = $member_price['user_price'];
+            if($cart['is_gift']){
+                $price = 0;
             }else{
-                $price = $goods['shop_price']*($rank['discount']/100);
+                if(!empty($member_price['user_price'])){
+                    $price = $member_price['user_price'];
+                }else{
+                    $price = $goods['shop_price']*($rank['discount']/100);
+                }
             }
             $cart_goods['goods_num'] = $goods['goods_number'];
             $cart_goods['price'] = $price;
@@ -272,11 +315,44 @@ class ClientController extends Controller{
             $num = $_POST['new_num'];
             $cart = Customer_cart::find()->where("id =".$id)->one();
             $cart->nums = $num;
-            if($cart->save()){
-                echo 111;
-            }else{
-                echo 222;
+            $customer = Customer::find()->where("customer_id =".Yii::$app->session['customer_id'])->asArray()->one();
+            $customer_id = $customer['id'];
+            $goods_id = $cart['goods_id'];
+            $promotion = $this->get_promotion($cart['goods_id'],$customer['type_id']);
+            Customer_cart::deleteAll("is_gift = 1 AND $goods_id =".$goods_id." AND customer_id =".$customer_id);
+            if(!empty($promotion)){
+                foreach($promotion as $val){
+                    switch($val['type']){
+                        //满送才增加数量，其他涉及价钱的在购物车里面体现
+                        case 1 :
+                            if($num >= $val['number']){
+                                $coe = (floor($num/$val['number']))*$val['coefficient'];
+                                $gift = new Customer_cart();
+                                $gift->goods_id = $goods_id;
+                                $gift->goods_name = $cart->goods_name."(赠送)";
+                                $gift->user_id = $customer['user_id'];
+                                $gift->customer_id = $customer_id;
+                                $gift->nums = $coe;
+                                $gift->is_gift = 1;
+                            }
+                            break;
+                    }
+                }
             }
+            if(!empty($gift)){
+                if($cart->save() && $gift->save()){
+                    echo 111;
+                }else{
+                    echo 222;
+                }
+            }else{
+                if($cart->save()){
+                    echo 111;
+                }else{
+                    echo 222;
+                }
+            }
+
             exit;
         }
     }
@@ -315,7 +391,7 @@ class ClientController extends Controller{
                 $order_good['market_price'] = $goods['market_price'];
                 $rank_price = Member_price::find()->where("goods_id =".$val['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
                 //如果是赠送商品，则价格为0，商品标识为赠品，并且赠送标识为1，否则再计算价格
-                if($val['id_gift'] == 1){
+                if($val['is_gift'] == 1){
                     $goods_price = 0;
                     $order_good['goods_name'] = $goods['goods_name']."(赠送)";
                     $order_good['is_gift'] = 1;
@@ -461,6 +537,20 @@ class ClientController extends Controller{
                 echo $f_price['price'];
             }
             exit;
+        }
+    }
+
+    //根据商品和客户等级获取政策
+    public function get_promotion($goods_id,$rank){
+        $promotion_goods = Promotion_goods::find()->where("goods_id =".$goods_id)->asArray()->all();
+        if(!empty($promotion_goods)){
+            $promotion_ids = array();
+            foreach($promotion_goods as $val){
+                $promotion_ids[] = $val['promotion_id'];
+            }
+            $promotion_ids = implode(",",$promotion_ids);
+            $promotion = Promotion::find()->where("start_time <".time())->andWhere("end_time >".time())->andWhere("rank like '%".$rank."%'")->andWhere("id in (".$promotion_ids.")")->asArray()->all();
+            return $promotion;
         }
     }
 

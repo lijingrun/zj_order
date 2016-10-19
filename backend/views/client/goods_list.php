@@ -9,21 +9,24 @@ use yii\widgets\LinkPager;
 ?>
 <script>
     function add_to_cart(id){
-        $.ajax({
-            type : 'post',
-            url : 'index.php?r=client/add_to_cart',
-            data : {'goods_id' : id},
-            success : function(data){
-                if(data == 111){
-                    alert("添加成功！");
-                }else if(data == 222){
-                    alert("已经存在于购物车");
-                    location.href="index.php?r=client/my_cart";
-                }else if(data == 333){
-                    alert("添加失败，请重试！");
+        var number = $("#number"+id).val();
+        if(number >= 1 ) {
+            $.ajax({
+                type: 'post',
+                url: 'index.php?r=client/add_to_cart',
+                data: {'goods_id': id, 'number' : number},
+                success: function (data) {
+                    if (data == 111) {
+                        alert("添加成功！");
+                    } else if (data == 222) {
+                        alert("已经存在于购物车");
+                        location.href = "index.php?r=client/my_cart";
+                    } else if (data == 333) {
+                        alert("添加失败，请重试！");
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 </script>
 <body style="background-color: #f5f5f5;">
@@ -50,9 +53,20 @@ use yii\widgets\LinkPager;
                 </p>
                 <p style="color:#00a2d4">
                     ￥<?php echo $good['shop_price']?>
+
+                </p>
+                <p style="color:#00a2d4">
+                    购买数量：<input type="text" value="1" style="width:40px;" id="number<?php echo $good['goods_id']?>" />
                 </p>
 
             </div>
+            <?php if(!empty($good['seller_note'])){ ?>
+            <div style="padding-left: 10px;color:red;">
+                <?php foreach($good['seller_note'] as $val){ ?>
+                <p><?php echo $val['title'];?></p>
+                <?php } ?>
+            </div>
+            <?php } ?>
             <div style="float: left;">
                 <a href="index.php?r=client/goods_detail&id=<?php echo $good['goods_id']?>">
                     <input type="button" class="btn-info" value="查看详细" />
