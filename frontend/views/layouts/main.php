@@ -37,7 +37,7 @@ AppAsset::register($this);
     $menuItems = [
 //        ['label' => '商品', 'url' => ['/goods']],
 //        ['label' => '订单', 'url' => ['/orders']],
-//        ['label' => '统计', 'url' => ['/statistics']],
+        ['label' => '促销', 'url' => ['/marketing']],
         ['label' => '客户', 'url' => ['/customer']],
         ['label' => '发票', 'url' => ['/invoice']],
         ['label' => '客户审核', 'url' => ['/customer_examine']],

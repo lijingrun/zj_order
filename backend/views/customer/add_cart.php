@@ -14,21 +14,26 @@ use yii\widgets\LinkPager;
         location.href="index.php?r=customer/add_cart&customer_id="+customer_id+"&key_word="+name;
     }
     function add_to_cart(goods_id){
-        var customer_id = <?php echo $customer_id ?>;
-        $.ajax({
-            type : 'post',
-            url : 'index.php?r=customer/add_to_cart',
-            data : {'goods_id' : goods_id, 'customer_id' : customer_id},
-            success : function(data){
-                if(data == 111){
-                    alert("添加成功！");
-                }else if(data == 222){
-                    alert("商品已经存在购物车中！");
-                }else{
-                    alert("服务器繁忙，请稍后重试！");
+        var customer_id = '<?php echo $customer_id ?>';
+        var number = $("#number"+goods_id).val();
+        if(number < 1){
+            alert("请填写正确数量");
+        }else {
+            $.ajax({
+                type: 'post',
+                url: 'index.php?r=customer/add_to_cart',
+                data: {'goods_id': goods_id, 'customer_id': customer_id, 'number': number},
+                success: function (data) {
+                        if (data == 111) {
+                            alert("添加成功！");
+                        } else if (data == 222) {
+                            alert("商品已经存在购物车中！");
+                        } else {
+                            alert("服务器繁忙，请稍后重试！");
+                        }
                 }
-            }
-        });
+            });
+        }
     }
 </script>
 <body style="background-color: #f5f5f5;">
@@ -55,6 +60,8 @@ use yii\widgets\LinkPager;
                     </p>
                     <p style="color:#00a2d4">
                         ￥<?php echo $good['shop_price']?>
+                        &nbsp;&nbsp;
+                        <input type="text" value="1" style="width:30px;" id="number<?php echo $good['goods_id'];?>" />
                     </p>
                     <a href="#">
                         <div onclick="add_to_cart(<?php echo $good['goods_id']?>);">
@@ -62,6 +69,14 @@ use yii\widgets\LinkPager;
                         </div>
                     </a>
                 </div>
+                <?php if(!empty($good['seller_note'])){ ?>
+                    促销优惠
+                <div style="padding-left: 10px;color:red;">
+                    <?php foreach($good['seller_note'] as $val){ ?>
+                        <p><?php echo $val['title']?></p>
+                    <?php } ?>
+                </div>
+            <?php } ?>
             </div>
 <!--        </a>-->
     <?php endforeach; ?>

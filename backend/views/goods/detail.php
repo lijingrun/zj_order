@@ -54,5 +54,28 @@
                     <?php endforeach; ?>
         </div>
     </div>
+    <?php if(!empty($promotion)){ ?>
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            <h3 class="panel-title">优惠活动</h3>
+        </div>
+        <div class="panel-body">
+                <?php foreach($promotion as $val): ?>
+                    <div class="row">
+                        <div class="col-xs-9 col-md-4">
+<!--                            <p>活动时间：</p>-->
+                            <?php echo date("Y-m-d H:i:s",$val['start_time'])."<br/>".date("Y-m-d H:i:s",$val['end_time'])?>
+                        </div>
+                        <div class="col-xs-3 col-md-4">
+<!--                            <p>优惠内容</p>-->
+                            <span style="color:#00a2d4">
+                            <?php echo $val['title'];?>
+                            </span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+        </div>
+    </div>
+<?php } ?>
 </div>
 </body>

@@ -17,6 +17,8 @@ use common\models\Customer_type;
 use common\models\Ecs_user;
 use common\models\Goods;
 use common\models\Member_price;
+use common\models\Promotion;
+use common\models\Promotion_goods;
 use common\models\Province;
 use common\models\Region;
 use common\models\User_address;
@@ -423,6 +425,21 @@ class CustomerController extends Controller{
         $category = $this->cate($category_data,$child,0);
         $pages = new Pagination(['totalCount' => $all_goods->count(),'pageSize' => 10]);
         $goods = $all_goods->offset($pages->offset)->limit($pages->limit)->asArray()->all();
+        foreach($goods as $key=>$good){
+            //查有无政策
+            $promotion_goods = Promotion_goods::find()->where("goods_id =".$good['goods_id'])->asArray()->all();
+            if(!empty($promotion_goods)){
+                $promotion_id = array();
+                foreach($promotion_goods as $val){
+                    $promotion_id[] = $val['promotion_id'];
+                }
+                $promotion_id = implode(',',$promotion_id);
+                $promotions = Promotion::find()->where("id in (".$promotion_id.")")->andWhere("start_time <".time())->andWhere("end_time >".time())->asArray()->all();
+                if(!empty($promotions)) {
+                    $goods[$key]['seller_note'] = $promotions;
+                }
+            }
+        }
         $customer_id = $_GET['customer_id'];
         return $this->render("add_cart",[
             'goods' => $goods,
@@ -439,6 +456,7 @@ class CustomerController extends Controller{
             $goods_id = $_POST['goods_id'];
             $customer_id = $_POST['customer_id'];
             $user_id = Yii::$app->session['user_id'];
+            $number = $_POST['number'];
             $cart = Customer_cart::find()->where("goods_id =".$goods_id)->andWhere("user_id =".$user_id)->andWhere("customer_id =".$customer_id)->count();
             if($cart > 0){
                 echo 222;
@@ -450,11 +468,53 @@ class CustomerController extends Controller{
             $new_cart->goods_name = $goods['goods_name'];
             $new_cart->user_id = Yii::$app->session['user_id'];
             $new_cart->customer_id = $customer_id;
-            $new_cart->nums = 1;
-            if($new_cart->save()){
-                echo 111;
-            }else{
-                echo 333;
+            $new_cart->nums = $number;
+            $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
+            //查是否有优惠政策，如果有，就查客户是否满足，满足的话按照政策来处理
+            $promotion_goods = Promotion_goods::find()->where("goods_id =".$goods_id)->asArray()->all();
+            if(!empty($promotion_goods)){
+                $promotion_id = array();
+                foreach($promotion_goods as $good){
+                    $promotion_id[] = $good['promotion_id'];
+                }
+                $promotion_id = implode(",",$promotion_id);
+                $promotion = Promotion::find()->where("id in (".$promotion_id.")")->andWhere("start_time <".time())->andWhere("end_time >".time())->andWhere("rank like '%".$customer['type_id']."%'")->asArray()->all();
+                if(!empty($promotion)){
+                    foreach($promotion as $val){
+                        switch($val['type']){
+                            //满送才增加数量，其他涉及价钱的在购物车里面体现
+                            case 1 :
+                                if($number >= $val['number']){
+                                    $coe = (floor($number/$val['number']))*$val['coefficient'];
+                                    $gift = new Customer_cart();
+                                    $gift->goods_id = $goods_id;
+                                    $gift->goods_name = $goods['goods_name']."(赠送)";
+                                    $gift->user_id = Yii::$app->session['user_id'];
+                                    $gift->customer_id = $customer_id;
+                                    $gift->nums = $coe;
+                                    $gift->is_gift = 1;
+                                }
+                                break;
+//                            case 2 : echo 2;
+//                                break;
+//                            case 3 : echo 3;
+//                                break;
+                        }
+                    }
+                }
+            }
+            if(!empty($gift)){
+                if ($new_cart->save() && $gift->save()) {
+                    echo 111;
+                } else {
+                    echo 333;
+                }
+            }else {
+                if ($new_cart->save()) {
+                    echo 111;
+                } else {
+                    echo 333;
+                }
             }
             exit;
         }
@@ -476,14 +536,19 @@ class CustomerController extends Controller{
             $cart_goods['goods_img'] = $goods['goods_img'];
             //查价钱
             $member_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
-            if(!empty($member_price['user_price'])){
-                $price = $member_price['user_price'];
-            }else{
-                $price = $goods['shop_price']*($rank['discount']/100);
+            if($cart['is_gift'] == 1){
+                $price = 0;
+            }else {
+                if (!empty($member_price['user_price'])) {
+                    $price = $member_price['user_price'];
+                } else {
+                    $price = $goods['shop_price'] * ($rank['discount'] / 100);
+                }
             }
             $cart_goods['goods_num'] = $goods['goods_number'];
             $cart_goods['price'] = $price;
             $cart_goods['num'] = $cart['nums'];
+            $cart_goods['is_gift'] = $cart['is_gift'];
             $cart_data[] = $cart_goods;
             $total_price += $price*$cart['nums'];
         endforeach;
@@ -551,14 +616,19 @@ class CustomerController extends Controller{
                     $order_goods->order_id = $order['order_id'];
                     $order_goods->goods_number = $cart['nums'];
                     $order_goods->goods_id = $goods['goods_id'];
-                    $order_goods->goods_name = $goods['goods_name'];
                     $order_goods->goods_sn = $goods['goods_sn'];
                     $order_goods->market_price = $goods['shop_price'];
                     $rank_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
-                    if(!empty($rank_price)){
-                        $goods_price = $rank_price['user_price'];
-                    }else{
-                        $goods_price = $goods['shop_price']*($rank['discount']/100);
+                    if($cart['is_gift'] == 1){
+                        $order_goods->goods_name = $goods['goods_name']."(赠送)";
+                        $goods_price = 0;
+                    }else {
+                        $order_goods->goods_name = $goods['goods_name'];
+                        if (!empty($rank_price)) {
+                            $goods_price = $rank_price['user_price'];
+                        } else {
+                            $goods_price = $goods['shop_price'] * ($rank['discount'] / 100);
+                        }
                     }
                     if(!empty($up_customer)){
                         $up_rank_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$up_customer['type_id'])->asArray()->one();

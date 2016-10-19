@@ -11,6 +11,8 @@ use common\models\Category;
 use common\models\Customer_type;
 use common\models\Goods;
 use common\models\Member_price;
+use common\models\Promotion;
+use common\models\Promotion_goods;
 use Yii;
 use yii\data\Pagination;
 use yii\web\Controller;
@@ -45,6 +47,19 @@ class GoodsController extends Controller{
         $goods = $all_goods->offset($pages->offset)->limit($pages->limit)->asArray()->all();
         $ranks = Customer_type::find()->asArray()->all();
         foreach($goods as $key=>$good):
+            //查有无政策
+            $promotion_goods = Promotion_goods::find()->where("goods_id =".$good['goods_id'])->asArray()->all();
+            if(!empty($promotion_goods)){
+                $promotion_id = array();
+                foreach($promotion_goods as $val){
+                    $promotion_id[] = $val['promotion_id'];
+                }
+                $promotion_id = implode(',',$promotion_id);
+                $promotions = Promotion::find()->where("id in (".$promotion_id.")")->andWhere("start_time <".time())->andWhere("end_time >".time())->asArray()->all();
+                if(!empty($promotions)) {
+                    $goods[$key]['seller_note'] = $promotions;
+                }
+            }
             foreach($ranks as $rank):
                 $price = Member_price::find()->where("goods_id =".$good['goods_id'])->andWhere("user_rank =".$rank['rank_id'])->asArray()->one();
                 if(!empty($price)) {
@@ -72,6 +87,16 @@ class GoodsController extends Controller{
         $id = $_GET['id'];
         $goods = Goods::find()->where("goods_id =".$id)->asArray()->one();
         $ranks = Customer_type::find()->all();
+        //查优惠
+        $promotion_goods = Promotion_goods::find()->where("goods_id =".$id)->asArray()->all();
+        if(!empty($promotion_goods)){
+            $promotion_ids = array();
+            foreach($promotion_goods as $good):
+                $promotion_ids[] = $good['promotion_id'];
+            endforeach;
+            $promotion_ids = implode(',',$promotion_ids);
+            $promotion = Promotion::find()->where("id in (".$promotion_ids.")")->andWhere("start_time <".time())->andWhere("end_time >".time())->asArray()->all();
+        }
         $member_price = array();
         foreach($ranks as $rank):
             $data = array();
@@ -87,6 +112,7 @@ class GoodsController extends Controller{
         return $this->render("detail",[
             'goods' => $goods,
             'member_price' => $member_price,
+            'promotion' => $promotion,
         ]);
     }
 

@@ -17,6 +17,7 @@
                 success : function(data){
                     if(data == 111){
                         alert("修改成功！");
+                        location.reload();
                     }else{
                         alert("服务器繁忙，请稍后重试！");
                     }
@@ -56,7 +57,7 @@
             </div>
                     <div class="panel-body">
                         数量：
-                        <input type="text" id="num<?php echo $val['cart_id'];?>" onblur="change_num(<?php echo $val['cart_id']?>);" value="<?php echo $val['num'];?>" style="width:30px;" />
+                        <input type="text" id="num<?php echo $val['cart_id'];?>" value="<?php echo $val['num'];?>" style="width:30px;" <?php if($val['is_gift'] == 1){echo "readonly='readonly'";}else{ echo "onblur='change_num(".$val['cart_id'].");'"; }?> />
                         <span style="color:red;">
                             (库存<?php echo $val['goods_num']?>)
                         </span>
@@ -64,6 +65,9 @@
                     </div>
         </div>
     <?php endforeach; ?>
+    <div>
+        总价：￥<?php echo $total_price;?>
+    </div>
     <div style="float:right;">
         <a href="index.php?r=customer/add_order&customer_id=<?php echo $customer_id;?>">
             <button class="btn-success">确认订单</button>

@@ -34,6 +34,13 @@ use yii\widgets\LinkPager;
                 </p>
 
             </div>
+            <?php if(!empty($good['seller_note'])){ ?>
+            <div style="padding-left: 10px;color:red">
+                <?php foreach($good['seller_note'] as $promotion): ?>
+                    <p><?php echo $promotion['title'];?></p>
+                <?php endforeach; ?>
+            </div>
+            <?php } ?>
         </div>
     </a>
 <?php endforeach; ?>
