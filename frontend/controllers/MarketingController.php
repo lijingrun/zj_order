@@ -147,7 +147,7 @@ class MarketingController extends Controller{
                 return $this->redirect("index.php?r=marketing/add");
             }
             $rank = implode(',',$rank);
-            $promotion = Promotion::find($id)->one();
+            $promotion = Promotion::find()->where("id =".$id)->one();
             $promotion->title = $title;
             $promotion->start_time = $start_time;
             $promotion->end_time = $end_time;
@@ -171,7 +171,7 @@ class MarketingController extends Controller{
                 return $this->redirect("index.php?r=marketing/add");
             }
         }else {
-            $promotion = Promotion::find($id)->asArray()->one();
+            $promotion = Promotion::find()->where("id =".$id)->asArray()->one();
             $choose_goods = Promotion_goods::find()->where("promotion_id =" . $id)->asArray()->all();
             $goods_ids = array();
             foreach ($choose_goods as $val) {

@@ -165,7 +165,7 @@
                     <div class="form-group">
                         <label class="col-sm-2 control-label"><span style="color:red;">*</span>详细地址：</label>
                         <div class="col-sm-10">
-                            <input type="text"  class="form-control" value="<?php echo $customer['address']?>"  name="address" placeholder="详细地址">
+                            <input type="text"  class="form-control"   name="address" placeholder="详细地址">
                         </div>
                     </div>
                     <div class="form-group">

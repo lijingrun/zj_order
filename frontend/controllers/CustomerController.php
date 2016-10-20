@@ -480,6 +480,7 @@ class CustomerController extends Controller{
         $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one();
         $total_price = 0;
         $cart_data = array();
+        $discount = 0;
         foreach($carts as $cart):
             $cart_goods = array();
             $cart_goods['goods_name'] = $cart['goods_name'];
@@ -493,12 +494,38 @@ class CustomerController extends Controller{
             }else{
                 $price = $goods['shop_price']*($rank['discount']/100);
             }
+            //查是否有涉及价格的政策，有就改变价钱
+            $promotion = $this->get_promotion($cart['goods_id'],$customer['type_id']);
+            if($cart['is_gift'] != 1) {
+                if (!empty($promotion)) {
+                    foreach ($promotion as $val) {
+                        switch ($val['type']) {
+                            //满减
+                            case 2 :
+                                if ($cart['nums'] >= $val['number']) {
+                                    $coe = (floor($cart['nums'] / $val['number'])) * $val['coefficient'];
+                                    $discount += $coe;
+                                }
+                                break;
+                            //满折
+                            case 3 :
+                                if ($cart['nums'] >= $val['number']) {
+                                    $coe = (floor($cart['nums'] / $val['number'])) * $val['coefficient'];
+                                    $one_dis = ($price * $cart['nums']) * (1 - $coe);
+                                    $discount += $one_dis;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
             $cart_goods['goods_num'] = $goods['goods_number'];
             $cart_goods['price'] = $price;
             $cart_goods['num'] = $cart['nums'];
             $cart_data[] = $cart_goods;
-            $total_price += $price*$cart['nums'];
+            $total_price += ($price*$cart['nums']);
         endforeach;
+        $total_price -= $discount;
         return $this->render("cart",[
             'cart_data' => $cart_data,
             'total_price' => $total_price,

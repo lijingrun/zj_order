@@ -85,6 +85,10 @@
         <div class="panel-body">
             <p>商品总金额：￥<?php echo $order['goods_amount'];?></p>
             <p>运费：￥<?php echo $order['clog_price'];?></p>
+            <?php if($order['discount'] > 0){
+              echo "<p style='color:red;'>整单优惠：￥".$order['discount']."</p>";
+            }
+            ?>
             <p>订单总金额：￥<?php echo $order['order_amount'];?></p>
 
         </div>
@@ -107,12 +111,7 @@
 
     <div class="panel panel-info">
         <div class="panel-body">
-            <p>交货日期：<?php echo $order['get_time'];?></p>
-        </div>
-    </div>
-    <div class="panel panel-info">
-        <div class="panel-body">
-            <p>备注信息：<?php echo $order['how_oos'];?></p>
+            <p>备注信息：<?php echo empty($order['how_oos']) ?'无':$order['how_oos'];?></p>
         </div>
     </div>
     <?php if($order['shipping_id'] == 1){ ?>
@@ -127,6 +126,13 @@
 <!--            <p>送货方式：--><?php //echo $order['shipping_name']?><!--</p>-->
         </div>
     </div>
+        <?php if(!empty($order['get_time'])){ ?>
+        <div class="panel panel-info">
+            <div class="panel-body">
+                <p>要求交货日期：<?php echo $order['get_time'];?></p>
+            </div>
+        </div>
+        <?php } ?>
     <?php }else{ ?>
     <div class="panel panel-primary">
         <div class="panel-heading">

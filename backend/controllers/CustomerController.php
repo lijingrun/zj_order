@@ -9,14 +9,18 @@ namespace backend\controllers;
 
 use common\models\Category;
 use common\models\City;
+use common\models\Address;
 use common\models\Customer;
 use common\models\Customer_cart;
 use common\models\Customer_order;
 use common\models\Customer_order_goods;
 use common\models\Customer_type;
 use common\models\Ecs_user;
+use common\models\Freight;
 use common\models\Goods;
 use common\models\Member_price;
+use common\models\Order_goods;
+use common\models\Order_info;
 use common\models\Promotion;
 use common\models\Promotion_goods;
 use common\models\Province;
@@ -412,6 +416,8 @@ class CustomerController extends Controller{
     //添加购物车
     public function actionAdd_cart(){
         $all_goods = Goods::find()->where("is_delete = 0");
+        $customer_id = $_GET['customer_id'];
+        $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
         $key_word = $_GET['key_word'];
         $cat_id = $_GET['cat_id'];
         if(!empty($cat_id)){
@@ -434,7 +440,7 @@ class CustomerController extends Controller{
                     $promotion_id[] = $val['promotion_id'];
                 }
                 $promotion_id = implode(',',$promotion_id);
-                $promotions = Promotion::find()->where("id in (".$promotion_id.")")->andWhere("start_time <".time())->andWhere("end_time >".time())->asArray()->all();
+                $promotions = Promotion::find()->where("id in (".$promotion_id.")")->andWhere("start_time <".time())->andWhere("end_time >".time())->andWhere("rank like '%".$customer['type_id']."%'")->asArray()->all();
                 if(!empty($promotions)) {
                     $goods[$key]['seller_note'] = $promotions;
                 }
@@ -524,6 +530,7 @@ class CustomerController extends Controller{
         $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one();
         $total_price = 0;
         $cart_data = array();
+        $discount = 0;
         foreach($carts as $cart):
             $cart_goods = array();
             $cart_goods['goods_name'] = $cart['goods_name'];
@@ -540,7 +547,30 @@ class CustomerController extends Controller{
                 } else {
                     $price = $goods['shop_price'] * ($rank['discount'] / 100);
                 }
+                $promotion = $this->get_promotion($cart['goods_id'],$customer['type_id']);
+                if(!empty($promotion)){
+                    foreach ($promotion as $val) {
+                        switch ($val['type']) {
+                            //满减
+                            case 2 :
+                                if ($cart['nums'] >= $val['number']) {
+                                    $coe = (floor($cart['nums'] / $val['number'])) * $val['coefficient'];
+                                    $discount += $coe;
+                                }
+                                break;
+                            //满折
+                            case 3 :
+                                if ($cart['nums'] >= $val['number']) {
+                                    $coe = (floor($cart['nums'] / $val['number'])) * $val['coefficient'];
+                                    $one_dis = ($price * $cart['nums']) * (1 - $coe);
+                                    $discount += $one_dis;
+                                }
+                                break;
+                        }
+                    }
+                }
             }
+            $cart_goods['promotion'] = $promotion;
             $cart_goods['goods_num'] = $goods['goods_number'];
             $cart_goods['price'] = $price;
             $cart_goods['num'] = $cart['nums'];
@@ -548,6 +578,7 @@ class CustomerController extends Controller{
             $cart_data[] = $cart_goods;
             $total_price += $price*$cart['nums'];
         endforeach;
+        $total_price -= $discount;
         return $this->render("cart",[
             'cart_data' => $cart_data,
             'total_price' => $total_price,
@@ -557,108 +588,185 @@ class CustomerController extends Controller{
 
     //确认下单
     public function actionAdd_order(){
-        $customer_id = $_GET['customer_id'];
+        $id = $_GET['customer_id'];
         $user_id = Yii::$app->session['user_id'];
-        $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
+        $customer = Customer::find()->where("id =".$id)->asArray()->one();
+        $customer_id = $customer['customer_id'];
         if(!empty($customer['up_customer'])){
             $up_customer = Customer::find()->where("id =".$customer['up_customer'])->asArray()->one();
             $up_rank = Customer_type::find()->where("rank_id =".$up_customer['type_id'])->asArray()->one();
         }
         if(Yii::$app->request->post()){
-            $carts = Customer_cart::find()->where("customer_id =".$customer_id)->andWhere("user_id =".$user_id)->asArray()->all();
-            if(empty($carts)){
-                Yii::$app->getSession()->setFlash("error",'你未选择商品！');
-                return $this->redirect("index.php?r=customer/cart&customer_id=".$customer_id);
+
+            //先查购物车情况
+            $cart_goods = Customer_cart::find()->where("customer_id =".$customer['id'])->asArray()->all();
+            if(empty($cart_goods)){
+                Yii::$app->getSession()->setFlash('error','您还未选择任何商品！');
+                return $this->redirect('index.php?r=customer');
             }
-            $province_id = $_POST['province']; //省份id
-            $city_id = $_POST['city'];      //城市id
-            $address = $_POST['address'];  //地址
-            $contacts = $_POST['contacts']; //联系人
-            $phone = $_POST['phone']; //联系电话
-            $customer_id = $_POST['customer_id']; //客户id
-            $customer = Customer::find()->where("id =".$customer_id)->asArray()->one();
-            $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one(); //会员级别
-            $province = Region::find()->where("region_id =".$province_id)->asArray()->one();
-            $city = Region::find()->where("region_id =".$city_id)->asArray()->one();
-            //保存订单信息
-            $order = new Customer_order();
-            $order->customer_id = $customer_id; //客户id
-            $order->sale_id = $user_id; //业务员id
-            $order->user_id = $customer['customer_id'];
-            $order->address = $province['region_name'].$city['region_id'].$address;
-            $order->consignee = $contacts;
-            $order->tel = $phone;
-            $order->shipping_id = $_POST['clog'];
-            if($_POST['clog'] == 1){
-                $colg_name = '送货';
+            $goods_amount = 0;
+            $order_goods = array();  //订单产品信息
+            $discount = 0;
+            foreach($cart_goods as $val){
+                $goods = Goods::find()->where("goods_id =".$val['goods_id'])->asArray()->one();
+                $order_good = array();
+                $order_good['goods_id'] = $val['goods_id'];
+                $order_good['goods_sn'] = $goods['goods_sn'];
+//                $order_good['product_id'] = $goods['product_id'];
+                $order_good['goods_number'] = $val['nums'];
+                $order_good['market_price'] = $goods['market_price'];
+                $rank_price = Member_price::find()->where("goods_id =".$val['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
+                //如果是赠送商品，则价格为0，商品标识为赠品，并且赠送标识为1，否则再计算价格
+                if($val['is_gift'] == 1){
+                    $goods_price = 0;
+                    $order_good['goods_name'] = $goods['goods_name']."(赠送)";
+                    $order_good['is_gift'] = 1;
+                }else{
+                    $order_good['is_gift'] = 0;
+                    if(!empty($rank_price)){
+                        $goods_price = $rank_price['user_price'];
+                    }else{
+                        $goods_price = $goods['shop_price'];
+                    }
+                    $order_good['goods_name'] = $goods['goods_name'];
+                }
+                //查是否有涉及价格的政策，有就改变价钱
+                $promotion = $this->get_promotion($val['goods_id'],$customer['type_id']);
+                if($val['is_gift'] != 1) {
+                    if (!empty($promotion)) {
+                        foreach ($promotion as $p) {
+                            switch ($p['type']) {
+                                //满减
+                                case 2 :
+                                    if ($val['nums'] >= $p['number']) {
+                                        $coe = (floor($val['nums'] / $p['number'])) * $p['coefficient'];
+                                        $discount += $coe;
+                                    }
+                                    break;
+                                //满折
+                                case 3 :
+                                    if ($val['nums'] >= $p['number']) {
+//                                        $coe = (floor($val['nums'] / $p['number'])) * $p['coefficient'];
+                                        $one_dis = ($goods_price * $val['nums']) * (1 - $p['coefficient']);
+                                        if ($one_dis > 0) {
+                                            $discount += $one_dis;
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                }
+                $order_good['goods_price'] = $goods_price;
+                $order_goods[] = $order_good;
+                $goods_amount += ($goods_price*$val['nums']);
+            }
+
+            $new_order = new Order_info();
+            //如果选择自提，直接无视送货信息
+            if($_POST['clog'] == 2){
+                $new_order->shipping_id = 2;
+                $new_order->shipping_name = '客户自提';
+                $clog_price = 0;
             }else{
-                $colg_name = "自提";
+                $clog_price = $_POST['clog_price'];
+                $new_order->shipping_id = 1;
+                $new_order->shipping_name = '送货';
+                //如果地址栏不留空，用输入的地址，如果留空，用地址id获取保存的地址
+                if(!empty($_POST['address'])){
+                    $new_order->country = 1;
+                    $new_order->province = $_POST['province'];
+                    $new_order->city = $_POST['city'];
+                    $new_order->district = $_POST['district'];
+                    $new_order->address = $_POST['address'];
+                    $new_order->consignee = $_POST['contacts'];
+                    $new_order->tel = $_POST['phone'];
+                    //将这个地址保存
+                    $new_address = new Address();
+                    $new_address->user_id = $customer_id;
+                    $new_address->consignee = $_POST['contacts'];
+                    $new_address->country = 1;
+                    $new_address->province = $_POST['province'];
+                    $new_address->city = $_POST['city'];
+                    $new_address->district = $_POST['district'];
+                    $new_address->address = $_POST['address'];
+                    $new_address->tel = $_POST['phone'];
+                    $new_address->save();
+                }else{
+                    $address = Address::find()->where("address_id =".$_POST['address_id'])->asArray()->one();
+                    $new_order->country = 1;
+                    $new_order->province = $address['province'];
+                    $new_order->city = $address['city'];
+                    $new_order->district = $address['district'];
+                    $new_order->address = $address['address'];
+                    $new_order->consignee = $address['consignee'];
+                    $new_order->tel = $address['tel'];
+                    $new_order->clog_price = $clog_price;
+                }
             }
-            $order->country = 1;
-            $order->province = $province_id;
-            $order->city = $city_id;
-            $order->shipping_name = $colg_name;
-            $order->get_time = $_POST['get_time'];
-            $order->customer_pay = $_POST['pay_type'];
-            $order->best_time = $_POST['remarks'];
-            $order->add_time = time();
-            $order->order_sn = $this->get_order_sn();
-            $total_price = 0;
-            $up_total_price = 0;
-            if($order->save()){
-                foreach($carts as $cart):
-                    $goods = Goods::find()->where("goods_id =".$cart['goods_id'])->asArray()->one();
-                    $order_goods = new Customer_order_goods();
-                    $order_goods->order_id = $order['order_id'];
-                    $order_goods->goods_number = $cart['nums'];
-                    $order_goods->goods_id = $goods['goods_id'];
-                    $order_goods->goods_sn = $goods['goods_sn'];
-                    $order_goods->market_price = $goods['shop_price'];
-                    $rank_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$customer['type_id'])->asArray()->one();
-                    if($cart['is_gift'] == 1){
-                        $order_goods->goods_name = $goods['goods_name']."(赠送)";
-                        $goods_price = 0;
-                    }else {
-                        $order_goods->goods_name = $goods['goods_name'];
-                        if (!empty($rank_price)) {
-                            $goods_price = $rank_price['user_price'];
-                        } else {
-                            $goods_price = $goods['shop_price'] * ($rank['discount'] / 100);
-                        }
-                    }
-                    if(!empty($up_customer)){
-                        $up_rank_price = Member_price::find()->where("goods_id =".$cart['goods_id'])->andWhere("user_rank =".$up_customer['type_id'])->asArray()->one();
-                        if(!empty($up_rank_price)){
-                            $up_price = $up_rank_price['user_price'];
-                        }else{
-                            $up_price = $goods['shop_price']*($up_rank['discount']/100);
-                        }
-                        $order_goods->up_price = $up_price;
-                        $up_total_price += $up_price*$cart['nums'];
-                    }
-                    $order_goods->goods_price = $goods_price;
-                    $total_price += $goods_price*$cart['nums'];
-                    $order_goods->save();
-                endforeach;
-                $order->order_amount = $total_price;
-                $order->goods_amount = $total_price;
-                $order->up_amount = $up_total_price;
-                $order->save();
-                Customer_cart::deleteAll("user_id =".$user_id);  //删除临时数据
+            $new_order->order_sn = $this->get_order_sn();
+            $new_order->customer_pay = $_POST['pay_type'];
+            $new_order->user_id = $customer_id;   //用户id
+            $new_order->how_oos = $_POST['remark'];
+            $new_order->add_time = time();
+            $new_order->get_time = $_POST['get_time'];
+            $new_order->customer_id = $customer['id'];  //对应的客户表id
+            $new_order->sale_id = $customer['user_id']; //业务员id
+            $new_order->goods_amount = $goods_amount ;
+            $new_order->order_amount = $goods_amount+$clog_price-$discount;
+            $new_order->discount = $discount;
+            if($new_order->save()){
+                //清空购物车
+                Customer_cart::deleteAll("customer_id =".$customer['id']);
+                foreach($order_goods as $val){
+                    $new_order_goods = new Order_goods();
+                    $new_order_goods->order_id = $new_order->order_id;
+                    $new_order_goods->goods_id = $val['goods_id'];
+                    $new_order_goods->goods_name = $val['goods_name'];
+                    $new_order_goods->goods_sn = $val['goods_sn'];
+                    $new_order_goods->goods_number = $val['goods_number'];
+                    $new_order_goods->market_price = $val['market_price'];
+                    $new_order_goods->goods_price = $val['goods_price'];
+                    $new_order_goods->is_gift = $val['is_gift'];
+                    $new_order_goods->save();
+                }
                 Yii::$app->getSession()->setFlash('success','下单成功！');
-                return $this->redirect("index.php?r=orders");
-            }else{
-                Yii::$app->getSession()->setFlash("error","系统繁忙，请稍后重试！");
                 return $this->redirect("index.php?r=orders");
             }
         }else{
             $provinces = Region::find()->where("parent_id = 1")->asArray()->all();
-            if(!empty($customer['province_id']))
-                $citys = Region::find()->where("parent_id =".$customer['province_id'])->asArray()->all();
+            $user_address = Address::find()->where("user_id =".$customer_id)->asArray()->all();
+            if(!empty($user_address)) {
+                $all_address = array();
+                foreach ($user_address as $val):
+                    $province = Region::find()->where("region_id =" . $val['province'])->asArray()->one();
+                    $city = Region::find()->where("region_id =" . $val['city'])->asArray()->one();
+                    $district = Region::find()->where("region_id =" . $val['district'])->asArray()->one();
+                    $address = array();
+                    $address['address_id'] = $val['address_id'];
+                    $address['province'] = $province['region_name'];
+                    $address['city'] = $city['region_name'];
+                    $address['district'] = $district['region_name'];
+                    $address['address'] = $val['address'];
+                    $address['tel'] = $val['tel'];
+                    $address['consignee'] = $val['consignee'];
+                    $all_address[] = $address;
+                    $address_price = Freight::find()->where("region_id =".$val['city'])->asArray()->one();
+                    if(empty($address_price)){
+                        $price_default = 0;
+                    }else{
+                        $price_default = $address_price['price'];
+                    }
+                endforeach;
+            }
+//            if(!empty($customer['province_id']))
+//                $citys = Region::find()->where("parent_id =".$customer['province_id'])->asArray()->all();
             return $this->render('add_order',[
                 'provinces' => $provinces,
                 'customer' => $customer,
-                'citys' => $citys,
+                'price_default' => $price_default,
+                'address' => $all_address,
+//                'citys' => $citys,
             ]);
 
         }
@@ -671,6 +779,20 @@ class CustomerController extends Controller{
         $code = $this->get_code($province_id,$city_id);
         echo $code;
         exit;
+    }
+
+    //根据商品和客户等级获取政策
+    public function get_promotion($goods_id,$rank){
+        $promotion_goods = Promotion_goods::find()->where("goods_id =".$goods_id)->asArray()->all();
+        if(!empty($promotion_goods)){
+            $promotion_ids = array();
+            foreach($promotion_goods as $val){
+                $promotion_ids[] = $val['promotion_id'];
+            }
+            $promotion_ids = implode(",",$promotion_ids);
+            $promotion = Promotion::find()->where("start_time <".time())->andWhere("end_time >".time())->andWhere("rank like '%".$rank."%'")->andWhere("id in (".$promotion_ids.")")->asArray()->all();
+            return $promotion;
+        }
     }
 
 }

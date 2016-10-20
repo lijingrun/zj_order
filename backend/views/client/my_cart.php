@@ -65,6 +65,13 @@
                         </span>
                         <span class="glyphicon glyphicon-trash" aria-hidden="true" style="float: right;" onclick="del(<?php echo $val['cart_id']?>);"></span>
                     </div>
+            <?php if(!empty($val['promotion'])){ ?>
+            <div style="padding-left: 10px;color:red;">
+                <?php foreach($val['promotion'] as $p){ ?>
+                <p><?php echo $p['title'];?></p>
+                <?php }?>
+            </div>
+            <?php } ?>
         </div>
     <?php endforeach; ?>
     <div style="float:right;">

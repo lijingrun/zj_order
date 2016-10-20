@@ -15,67 +15,20 @@
     }
 </style>
 <script>
-    function add_goods(){
-        var goods_id = $("#goods_id").val();
-        if(goods_id != 0){
-            $.ajax({
-                type : 'post',
-                url : 'index.php?r=orders/add_to_cart',
-                data : {'goods_id' : goods_id},
-                success : function(data){
-                    if(data == 111){
-                        get_cart_data();
-                    }
-                }
-            });
-        }
-        get_cart_data();
-    }
-    function get_cart_data(){
-        var customer_id = $("#customer_id").val();
-        $.ajax({
-            type : 'post',
-            url : 'index.php?r=orders/get_cart_data',
-            data : {'customer_id' : customer_id},
-            success : function(data){
-                $("#goods_data").html(data);
-            }
-        });
-    }
-    function del_cart(id){
-        if(confirm("是否确定取消？")){
-            $.ajax({
-                type : 'post',
-                url : 'index.php?r=orders/del_cart',
-                data : {'id' : id},
-                success : function(data){
-                    if(data == 111){
-                        get_cart_data();
-                    }
-                }
-            });
-        }
-    }
-    function to_change_nums(id){
-        var input_htm = "<input type='text' style='width:40px;' id='new_nums'onblur='change_nums("+id+");'>";
-        $("#cart"+id).html(input_htm);
-    }
-    function change_nums(id){
-        var new_num = $("#new_nums").val().trim();
-        if(new_num != '' && !isNaN(new_num)) {
-            $.ajax({
-                type: 'post',
-                url: 'index.php?r=orders/change_cat_num',
-                data: {'id': id , 'new_num' : new_num},
-                success: function (data) {
-                    if (data == 111) {
-                        get_cart_data();
-                    }
-                }
-            });
+    function choose_clog_type(type){
+        //客户要求送货的时候，直接获取客户地址信息
+        if(type == 1){
+            $("#address_list").show();
+            $("#get_time").show();
         }else{
-            alert("请输入正确内容");
+            $("#new_address").hide();
+            $("#address_list").hide();
+            $("#get_time").hide();
         }
+    }
+    function new_address(){
+        $("#address_list").hide();
+        $("#new_address").show();
     }
     function get_city(){
         var province_id = $("#province").val();
@@ -91,102 +44,171 @@
             });
         }
     }
-    function check_data(){
-        var province = $("#province").val();
-        var city = $("#city").val();
-        var address = $("#address").val();
-        var contacts = $("#contacts").val();
-        var phone = $("#phone").val();
-        if(province == 0 || city == 0 || address == '' || contacts == '' || phone == ''){
-            alert("请填写相关内容！");
-        }else{
-            $("#form").submit();
+    function get_district(){
+        var city_id = $("#city").val();
+        $("#district").html('');
+        if(city_id != 0){
+            $.ajax({
+                type : 'post',
+                url : 'index.php?r=customer/get_city',
+                data : {'id' : city_id},
+                success : function(data){
+                    $("#district").html(data);
+                }
+            });
+            $.ajax({
+                type : 'post',
+                url : 'index.php?r=client/f_price',
+                data : {'id' : city_id},
+                success : function(data){
+                    $("#f_price").val(data);
+                }
+            });
         }
     }
-    function change_customer(){
-        get_cart_data();
+    function get_f_price(address_id){
+        $.ajax({
+            type : 'post',
+            url : 'index.php?r=client/get_f_price',
+            data : {'id' : address_id},
+            success : function(data){
+                $("#f_price").val(data);
+            }
+        });
+    }
+    function check_data(){
+//        var province = $("#province").val();
+//        var city = $("#city").val();
+//        var address = $("#address").val();
+//        var contacts = $("#contacts").val();
+//        var phone = $("#phone").val();
+//        if(province == 0 || city == 0 || address == '' || contacts == '' || phone == ''){
+//            alert("请填写相关内容！");
+//        }else{
+        $("#form").submit();
+//        }
     }
 </script>
 <div>
     <div>
-        <h3>订单信息</h3>
-        <div>
+        <h3>请填写相关信息</h3>
+        <div style="font-size: 20px;">
             <form class="form-horizontal" id="form" method="post" id="form">
                 <div class="form-group">
-                    <label class="col-sm-2 control-label"><span style="color:red;">*</span>客户：</label>
+                    <label class="col-sm-2 control-label"><span style="color:red;">*</span>送货方式：</label>
                     <div class="col-sm-10">
-                        <input type="text" readonly="readonly"  class="form-control" value="<?php echo $customer['customer_name']?>" />
-                        <input type="hidden" value="<?php echo $customer['id']?>" name="customer_id"  />
+                        <div class="radio">
+                            <label onclick="choose_clog_type(2);">
+                                <input type="radio" name="clog"  value="2" checked>
+                                客户自提
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label onclick="choose_clog_type(1);">
+                                <input type="radio" name="clog" value="1">
+                                送货
+                            </label>
+                        </div>
                     </div>
                 </div>
-                <h3>发货信息</h3>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label"><span style="color:red;">*</span>发货地址：</label>
-                    <div class="col-sm-10">
-                        <select name="province" id="province" class="form-control" style="width: 180px;" onchange="get_city();">
-                            <option value="0">请选择客户所在省份</option>
-                            <?php foreach($provinces as $province): ?>
-                                <option value="<?php echo $province['region_id']?>" <?php if($province['region_id'] == $customer['province_id']){echo "selected";}?> >
-                                    <?php echo $province['region_name'];?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <br />
-                        <select name="city" id="city" class="form-control" style="width: 180px;">
-                            <?php if(!empty($citys)){ ?>
-                                <?php foreach($citys as $val): ?>
-                                <option value="<?php echo $val['region_id']?>" <?php if($val['region_id'] == $customer['city_id']){echo "selected";} ?>>
-                                    <?php echo $val['region_name']?>
-                                </option>
+
+                <!-- 收货地址列表 -->
+                <div id="address_list" style="display: none;">
+                    <?php if(!empty($address)){  ?>
+                        <?php foreach($address as $val): ?>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="address_id"  value="<?php echo $val['address_id']?>" checked>
+                                    <div class="alert alert-success" role="alert" role="alert" onclick="get_f_price(<?php echo $val['address_id']?>);">
+                                        <p><?php echo $val['province'].$val['city'].$val['district'].$val['address']?></p>
+                                        <p><?php echo $val['consignee']."(".$val['tel'].")"; ?></p>
+                                    </div>
+                                </label>
+                            </div>
+                        <?php endforeach; ?>
+                        <div class="alert alert-success" role="alert" onclick="new_address();">
+                            <strong>新增地址!</strong>
+                        </div>
+                    <?php }else{ ?>
+                        <div class="alert alert-danger" role="alert" onclick="new_address();">
+                            <strong>您还未添加过任何地址!</strong> 点击添加新地址
+                        </div>
+                    <?php } ?>
+                </div>
+
+
+
+
+                <!-- 新增地址 -->
+                <div id="new_address" style="display: none;">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"><span style="color:red;">*</span>发货地址：</label>
+                        <div class="col-sm-10">
+                            <select name="province" id="province" class="form-control" style="width: 180px;" onchange="get_city();">
+                                <option value="0">请选择客户所在省份</option>
+                                <?php foreach($provinces as $province): ?>
+                                    <option value="<?php echo $province['region_id']?>" <?php if($province['region_id'] == $customer['province_id']){echo "selected";}?> >
+                                        <?php echo $province['region_name'];?>
+                                    </option>
                                 <?php endforeach; ?>
-                            <?php } ?>
-                        </select>
+                            </select>
+                            <br />
+                            <select name="city" id="city" class="form-control" style="width: 180px;" onchange="get_district();">
+
+                            </select>
+                            <br />
+                            <select name="district" id="district" class="form-control" style="width: 180px;">
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"><span style="color:red;">*</span>详细地址：</label>
+                        <div class="col-sm-10">
+                            <input type="text"  class="form-control"  name="address" placeholder="详细地址">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"><span style="color:red;">*</span>联系人：</label>
+                        <div class="col-sm-10">
+                            <input type="text"  class="form-control" id="contacts" value="<?php echo $customer['name']?>" name="contacts" placeholder="联系人">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"><span style="color:red;">*</span>联系电话：</label>
+                        <div class="col-sm-10">
+                            <input type="text"  class="form-control" id="phone" name="phone" value="<?php echo $customer['phone']?>" placeholder="联系电话">
+                        </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label"><span style="color:red;">*</span>详细地址：</label>
-                    <div class="col-sm-10">
-                        <input type="text"  class="form-control" value="<?php echo $customer['address']?>"  name="address" placeholder="详细地址">
+                <div id="get_time" style="display: none;">
+                    <div class="form-group" >
+                        <label class="col-sm-2 control-label">要求到货时间：</label>
+                        <div class="col-sm-10">
+                            <input type="date" name="get_time" />
+                        </div>
+                    </div>
+                    <div class="form-group"  >
+                        <label class="col-sm-2 control-label">运费：</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="f_price" id="f_price" value="<?php echo $price_default;?>" readonly="readonly" style="width:80px;" />
+                        </div>
                     </div>
                 </div>
+                <!-- 新增地址结束 -->
+
+                <!--                <div class="form-group">-->
+                <!--                    <label class="col-sm-2 control-label">卸车费用：</label>-->
+                <!--                    <div class="col-sm-10">-->
+                <!--                        <select name="unload_price" class="form-control" >-->
+                <!--                            <option value="1">包含</option>-->
+                <!--                            <option value="2">不包含</option>-->
+                <!--                        </select>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+
                 <div class="form-group">
-                    <label class="col-sm-2 control-label"><span style="color:red;">*</span>联系人：</label>
-                    <div class="col-sm-10">
-                        <input type="text"  class="form-control" id="contacts" value="<?php echo $customer['name']?>" name="contacts" placeholder="联系人">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label"><span style="color:red;">*</span>联系电话：</label>
-                    <div class="col-sm-10">
-                        <input type="text"  class="form-control" id="phone" name="phone" value="<?php echo $customer['phone']?>" placeholder="联系电话">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">出货形式：</label>
-                    <div class="col-sm-10">
-                        <select name="clog" class="form-control" >
-                            <option value="1">送货</option>
-                            <option value="2">自提</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">卸车费用：</label>
-                    <div class="col-sm-10">
-                        <select name="unload_price" class="form-control" >
-                            <option value="1">包含</option>
-                            <option value="2">不包含</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">要求到货时间：</label>
-                    <div class="col-sm-10">
-                        <input type="date" name="get_time" />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">收款方式：</label>
+                    <label class="col-sm-2 control-label">付款方式：</label>
                     <div class="col-sm-10">
                         <select name="pay_type" class="form-control" >
                             <option value="1">现销</option>
@@ -204,7 +226,7 @@
 
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="button" onclick="check_data();" class="btn btn-primary">保存</button>
+                        <button type="button" onclick="check_data();" class="btn btn-primary">提交订单</button>
                         <a href="index.php?r=orders">
                             <button type="button" class="btn btn-default">取消</button>
                         </a>

@@ -277,6 +277,7 @@ class ClientController extends Controller{
         $rank = Customer_type::find()->where("rank_id =".$customer['type_id'])->asArray()->one();
         $total_price = 0;
         $cart_data = array();
+        $discount = 0;
         foreach($carts as $cart):
             $cart_goods = array();
             $cart_goods['goods_name'] = $cart['goods_name'];
@@ -294,12 +295,38 @@ class ClientController extends Controller{
                     $price = $goods['shop_price']*($rank['discount']/100);
                 }
             }
+            //查是否有涉及价格的政策，有就改变价钱
+            $promotion = $this->get_promotion($cart['goods_id'],$customer['type_id']);
+            if(!$cart['is_gift']) {
+                if (!empty($promotion)) {
+                    foreach ($promotion as $val) {
+                        switch ($val['type']) {
+                            //满减
+                            case 2 :
+                                if ($cart['nums'] >= $val['number']) {
+                                    $coe = (floor($cart['nums'] / $val['number'])) * $val['coefficient'];
+                                    $discount += $coe;
+                                }
+                                break;
+                            //满折
+                            case 3 :
+                                if ($cart['nums'] >= $val['number']) {
+                                    $coe = (floor($cart['nums'] / $val['number'])) * $val['coefficient'];
+                                    $one_dis = ($price * $cart['nums']) * (1 - $coe);
+                                    $discount += $one_dis;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
             $cart_goods['goods_num'] = $goods['goods_number'];
+            $cart_goods['promotion'] = $promotion;
             $cart_goods['price'] = $price;
             $cart_goods['num'] = $cart['nums'];
             $cart_goods['is_gift'] = $cart['is_gift'];
             $cart_data[] = $cart_goods;
-            $total_price += $price*$cart['nums'];
+            $total_price += ($price*$cart['nums']-$discount);
         endforeach;
         return $this->render("my_cart",[
             'cart_data' => $cart_data,
@@ -381,6 +408,7 @@ class ClientController extends Controller{
             }
             $goods_amount = 0;
             $order_goods = array();  //订单产品信息
+            $discount = 0;
             foreach($cart_goods as $val){
                 $goods = Goods::find()->where("goods_id =".$val['goods_id'])->asArray()->one();
                 $order_good = array();
@@ -404,11 +432,37 @@ class ClientController extends Controller{
                     }
                     $order_good['goods_name'] = $goods['goods_name'];
                 }
+                //查是否有涉及价格的政策，有就改变价钱
+                $promotion = $this->get_promotion($val['goods_id'],$customer['type_id']);
+                if($val['is_gift'] != 1) {
+                    if (!empty($promotion)) {
+                        foreach ($promotion as $p) {
+                            switch ($p['type']) {
+                                //满减
+                                case 2 :
+                                    if ($val['nums'] >= $p['number']) {
+                                        $coe = (floor($val['nums'] / $p['number'])) * $p['coefficient'];
+                                        $discount += $coe;
+                                    }
+                                    break;
+                                //满折
+                                case 3 :
+                                    if ($val['nums'] >= $p['number']) {
+//                                        $coe = (floor($val['nums'] / $p['number'])) * $p['coefficient'];
+                                        $one_dis = ($goods_price * $val['nums']) * (1 - $p['coefficient']);
+                                        if ($one_dis > 0) {
+                                            $discount += $one_dis;
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                }
                 $order_good['goods_price'] = $goods_price;
                 $order_goods[] = $order_good;
                 $goods_amount += ($goods_price*$val['nums']);
             }
-
             $new_order = new Order_info();
             //如果选择自提，直接无视送货信息
             if($_POST['clog'] == 2){
@@ -457,7 +511,8 @@ class ClientController extends Controller{
             $new_order->customer_id = $customer['id'];  //对应的客户表id
             $new_order->sale_id = $customer['user_id']; //业务员id
             $new_order->goods_amount = $goods_amount ;
-            $new_order->order_amount = $goods_amount+$_POST['f_price'];
+            $new_order->order_amount = ($goods_amount+$_POST['f_price'])-$discount;
+            $new_order->discount = $discount;
             $new_order->clog_price = $_POST['f_price'];
             if($new_order->save()){
                 //清空购物车
