@@ -48,7 +48,7 @@
         <div class="panel panel-primary" style="padding: 10px;">
             <div class="row">
                 <div class="col-xs-4 col-md-4">
-                    <img src="<?php echo $val['goods_img'];?>" style="width: 100%;" />
+                    <img src="http://jmzjtech.vicp.net:81/<?php echo $val['goods_img'];?>" style="width: 100%;" />
                 </div>
                 <div class="col-xs-8 col-md-4">
                     <div style="padding-top: 15px;">

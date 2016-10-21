@@ -23,7 +23,7 @@ use yii\widgets\LinkPager;
     <a href="index.php?r=goods/detail&id=<?php echo $good['goods_id']?>">
         <div class="row" style="padding-top: 10px;padding-bottom:10px;background-color: white;margin:10px;">
             <div class="col-xs-5 col-sm-4">
-                <img src="#" style="width:100%;" />
+                <img src="http://jmzjtech.vicp.net:81/<?php echo $good['goods_img']?>" style="width:100%;" />
             </div>
             <div class="col-xs-7 col-sm-4">
                 <p style="padding-top:20px;">

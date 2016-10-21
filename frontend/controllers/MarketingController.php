@@ -14,6 +14,7 @@ use common\models\Goods;
 use common\models\Member_price;
 use common\models\Promotion;
 use common\models\Promotion_goods;
+use common\models\User_rule;
 use Yii;
 use yii\data\Pagination;
 use yii\web\Controller;
@@ -21,6 +22,22 @@ use yii\web\Controller;
 
 class MarketingController extends Controller{
     public $enableCsrfValidation = false;
+
+    public function beforeAction($action)
+    {
+        $user_id = Yii::$app->session['user_id'];
+        if(empty($user_id)){
+            return $this->redirect("index.php?r=site/login");
+        }else{
+            $user_rule = User_rule::find()->where("user_id =".$user_id)->asArray()->one();
+            if($user_rule['marketing'] != 1){
+                Yii::$app->getSession()->setFlash('error','你没有权限访问！');
+                return $this->redirect("index.php");
+            }else{
+                return $action;
+            }
+        }
+    }
 
     public function actionIndex(){
         $all_data = Promotion::find();

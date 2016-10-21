@@ -165,6 +165,7 @@ class UserController extends Controller{
             $user_rule['customer_examine'] = empty($_POST['customer_examine']) ? 0 : 1;
             $user_rule['customer'] = empty($_POST['customer']) ? 0 : 1;
             $user_rule['freight'] = empty($_POST['freight']) ? 0 : 1;
+            $user_rule['marketing'] = empty($_POST['marketing']) ? 0 : 1;
             if($user_rule->save()){
                 Yii::$app->getSession()->setFlash('success','操作成功！');
                 return $this->redirect('index.php?r=user');
