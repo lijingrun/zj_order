@@ -153,16 +153,18 @@
                             <th>商品</th>
                             <th>价格</th>
                             <th>数量</th>
+                            <th>金额</th>
                         </tr>
                         <?php foreach($goods as $good): ?>
                             <tr>
                                 <td><?php echo $good['goods_name'];?></td>
                                 <td><?php echo $good['goods_price'];?></td>
                                 <td><?php echo $good['goods_number'];?></td>
+                                <td><?php echo ($good['goods_number']*$good['goods_price']);?></td>
                             </tr>
                         <?php endforeach; ?>
                         <tr>
-                            <td colspan="3" align="right">
+                            <td colspan="4" align="right">
                                 小计：￥<?php echo $order['goods_amount'];?>
                             </td>
                         </tr>

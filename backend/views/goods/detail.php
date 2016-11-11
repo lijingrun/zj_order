@@ -9,7 +9,7 @@
 <body style="background-color: #f5f5f5;">
 <div>
     <div>
-        <img src="<?php echo $goods['goods_img'];?>" style="width: 100%"; />
+        <img src="<?php echo Yii::$app->params['url'].$goods['goods_img'];?>" style="width: 100%"; />
     </div>
     <div>
         <div class="panel panel-default">

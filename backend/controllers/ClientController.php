@@ -8,6 +8,7 @@
 
 namespace backend\controllers;
 use common\models\Address;
+use common\models\Category;
 use common\models\Customer;
 use common\models\Customer_cart;
 use common\models\Customer_type;
@@ -39,8 +40,8 @@ class ClientController extends Controller{
 
     public function actionIndex(){
 
-
-        return $this->render("index");
+        return $this->redirect("index.php?r=client/goods");
+//        return $this->render("index");
     }
 
 //    public function actionLogin(){
@@ -83,9 +84,18 @@ class ClientController extends Controller{
     }
 
     public function actionGoods(){
+        //查所有产品类型
+        $goods_category = Category::find()->asArray()->all();
         $all_goods = Goods::find();
         $pages = new Pagination(['totalCount' => $all_goods->count(), 'pageSize' => '10']);
-        $goods = $all_goods->offset($pages->offset)->limit($pages->limit)->all();
+        $category = $_GET['category'];
+        $conditions = "1=1";
+        if(!empty($category)) {
+            $category_arr = array_filter(explode(',', $category));
+            $category = implode(',',$category_arr);
+            $conditions .= " AND cat_id in (".$category.")";
+        }
+        $goods = $all_goods->where($conditions)->offset($pages->offset)->limit($pages->limit)->all();
         //查等级，显示等级价格
         $customer_id = Yii::$app->session['customer_id'];
         $user = Ecs_user::find()->where("user_id =".$customer_id)->asArray()->one();
@@ -104,6 +114,8 @@ class ClientController extends Controller{
         return $this->render('goods_list',[
             'goods' => $goods,
             'pages' => $pages,
+            'category' => $goods_category,
+            'category_arr' => $category_arr,
         ]);
     }
 
@@ -492,14 +504,19 @@ class ClientController extends Controller{
                     $new_address->tel = $_POST['phone'];
                     $new_address->save();
                 }else{
-                    $address = Address::find()->where("address_id =".$_POST['address_id'])->asArray()->one();
-                    $new_order->country = 1;
-                    $new_order->province = $address['province'];
-                    $new_order->city = $address['city'];
-                    $new_order->district = $address['district'];
-                    $new_order->address = $address['address'];
-                    $new_order->consignee = $address['consignee'];
-                    $new_order->tel = $address['tel'];
+                    if(!empty($_POST['address_id'])) {
+                        $address = Address::find()->where("address_id =" . $_POST['address_id'])->asArray()->one();
+                        $new_order->country = 1;
+                        $new_order->province = $address['province'];
+                        $new_order->city = $address['city'];
+                        $new_order->district = $address['district'];
+                        $new_order->address = $address['address'];
+                        $new_order->consignee = $address['consignee'];
+                        $new_order->tel = $address['tel'];
+                    }else{
+                        Yii::$app->getSession()->setFlash('error','请填写收货内容！');
+                        return $this->redirect("index.php?r=client/add_order");
+                    }
                 }
             }
             $new_order->order_sn = $this->get_order_sn();

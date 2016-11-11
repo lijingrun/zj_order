@@ -693,15 +693,20 @@ class CustomerController extends Controller{
                     $new_address->tel = $_POST['phone'];
                     $new_address->save();
                 }else{
-                    $address = Address::find()->where("address_id =".$_POST['address_id'])->asArray()->one();
-                    $new_order->country = 1;
-                    $new_order->province = $address['province'];
-                    $new_order->city = $address['city'];
-                    $new_order->district = $address['district'];
-                    $new_order->address = $address['address'];
-                    $new_order->consignee = $address['consignee'];
-                    $new_order->tel = $address['tel'];
-                    $new_order->clog_price = $clog_price;
+                    if(!empty($_POST['address_id'])) {
+                        $address = Address::find()->where("address_id =" . $_POST['address_id'])->asArray()->one();
+                        $new_order->country = 1;
+                        $new_order->province = $address['province'];
+                        $new_order->city = $address['city'];
+                        $new_order->district = $address['district'];
+                        $new_order->address = $address['address'];
+                        $new_order->consignee = $address['consignee'];
+                        $new_order->tel = $address['tel'];
+                        $new_order->clog_price = $clog_price;
+                    }else{
+                        Yii::$app->getSession()->setFlash('error','请填写收货内容！');
+                        return $this->redirect("index.php?r=client/add_order");
+                    }
                 }
             }
             $new_order->order_sn = $this->get_order_sn();
