@@ -168,6 +168,26 @@ class ClientController extends Controller{
         ]);
     }
 
+    //收货
+    public function actionGet_goods(){
+        if(Yii::$app->request->post()){
+//            print_r($_SESSION);exit;
+            $order_id = $_POST['order_id'];
+            $order = Order_info::find()->where("order_id = ".$order_id)->one();
+            if($order->order_status != 2 && $order->shipping_status == 1 && $order->user_id = $_SESSION['customer_id']){
+                $order->order_status = 3;
+                if($order->save()){
+                    echo 111;
+                }else{
+                    echo 333;
+                }
+            }else{
+                echo 222;
+            }
+        }
+        exit;
+    }
+
     //客户取消订单
     public function actionCancel_order(){
         if(Yii::$app->request->post()){
@@ -191,9 +211,19 @@ class ClientController extends Controller{
     public function actionStatistic(){
         $customer_id = Yii::$app->session['customer_id'];
         $year = empty($_GET['year']) ? date("Y",time()) : $_GET['year'];
-        $mount = empty($_GET['mount']) ? date("m",time()) : $_GET['mount'];
-        $start_time = strtotime($year."-".$mount."-01");
-        $end_time = strtotime($year."-".($mount+1)."-01");
+        $mount =  $_GET['mount'];
+        if($mount == 0){
+            $start_time = strtotime($year."-01-01");
+            $end_time = strtotime($year."-12-31 23:59:59");
+        }else{
+            $start_time = strtotime($year."-".$mount."-01");
+            if($mount == 12){
+                $end_time = strtotime($year."-".($mount)."-31 23:59:59");
+            }else{
+                $end_time = strtotime($year."-".($mount+1)."-01");
+            }
+        }
+
         //查时间断内已经支付了的订单
         $orders = Order_info::find()->where("user_id =".$customer_id)->andWhere("add_time >=".$start_time)->andWhere("add_time <".$end_time)->andWhere("pay_status = 2")->asArray()->all();
         $total_price = 0;

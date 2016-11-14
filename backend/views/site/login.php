@@ -17,9 +17,10 @@ $this->title = 'Login';
 
     <div class="row">
         <div class="col-lg-5">
+            <h4 style="color:red;">业务员下单登录</h4>
             <?php $form = ActiveForm::begin(['id' => 'login-form']); ?>
 
-                <?= $form->field($model, 'username')->label("登录名称") ?>
+                <?= $form->field($model, 'username')->label("业务员名称") ?>
 
                 <?= $form->field($model, 'password')->passwordInput()->label("登录密码") ?>
 

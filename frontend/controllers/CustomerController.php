@@ -190,6 +190,12 @@ class CustomerController extends Controller{
             $customer = Customer::find()->where("id =".$id)->one();
             $province = Region::find()->where("region_id =".$_POST['province'])->asArray()->one();
             $city = Region::find()->where("region_id =".$_POST['city'])->asArray()->one();
+            $new_password = trim($_POST['new_password']);
+            if(!empty($new_password)){
+                $users = Ecs_user::find()->where("user_id =".$customer->customer_id)->one();
+                $users->password = md5($new_password);
+                $users->save();
+            }
             $customer->customer_name = $_POST['customer_name']; //客户名
             $customer->customer_code = $_POST['customer_code']; //客户编码
             $customer->province_id = $_POST['province']; //所在省份

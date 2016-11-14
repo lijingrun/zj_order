@@ -28,7 +28,7 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => '业务员订单系统',
+        'brandLabel' => '中建科技业务员系统',
         'brandUrl' => 'index.php?r=customer',
         'options' => [
             'class' => 'navbar-inverse navbar-fixed-top',

@@ -51,6 +51,8 @@
         var phone = $("#phone").val().trim();
         var ec_account = $("#ec_account").is(':checked');
         var customer_code = $("#customer_code").val();
+        var new_password = $("#new_password").val();
+        var con_password = $("#con_password").val();
         if(ec_account){
             var user_name = $("#user_name").val().trim();
             var password = $("#password").val();
@@ -66,7 +68,11 @@
             if(customer_name == '' || phone == '' || license_id == '' || customer_code == ''){
                 alert("请填写相关内容！");
             }else{
-                $("#form").submit();
+                if(new_password != con_password){
+                    alert("2次输入的密码不一致！");
+                }else{
+                    $("#form").submit();
+                }
             }
         }
     }
@@ -107,6 +113,18 @@
                 <label class="col-sm-2 control-label"><span style="color:red;">*</span>客户名称</label>
                 <div class="col-sm-10">
                     <input type="text"  class="form-control" id="customer_name" value="<?php echo $customer['customer_name']?>" name="customer_name" placeholder="客户名称">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">新密码</label>
+                <div class="col-sm-10">
+                    <input type="password"  class="form-control" id="new_password" name="new_password" placeholder="新密码">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">确认密码</label>
+                <div class="col-sm-10">
+                    <input type="password"  class="form-control" id="con_password" name="con_password" placeholder="确认密码">
                 </div>
             </div>
             <div class="form-group">

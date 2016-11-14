@@ -31,6 +31,7 @@
     </div>
     <div style="padding-top:10px;">
         <select  id="mount" class="form-control" onchange="get_data();">
+            <option value="0" <?php if($mount==0){echo "selected";}?>>全年</option>
             <option value="1" <?php if($mount==1){echo "selected";}?>>1月</option>
             <option value="2" <?php if($mount==2){echo "selected";}?>>2月</option>
             <option value="3" <?php if($mount==3){echo "selected";}?>>3月</option>
@@ -51,7 +52,15 @@
         <?php }else{ ?>
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><?php echo $year."年".$mount."月订货清单"?></h3>
+                    <h3 class="panel-title">
+                        <?php
+                        if($mount == 0){
+                            echo $year."年全年订货清单";
+                        }else {
+                            echo $year . "年" . $mount . "月订货清单";
+                        }
+                        ?>
+                    </h3>
                 </div>
                 <div class="panel-body">
                     <h4 style="color:red;">

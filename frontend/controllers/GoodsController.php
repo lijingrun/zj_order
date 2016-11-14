@@ -30,10 +30,17 @@ class GoodsController extends Controller{
     }
 
     public function actionIndex(){
+        $goods_category = Category::find()->asArray()->all();
         $key_word = $_GET['key_word'];
         $all_goods = Goods::find()->where("is_delete = 0");
         if(!empty($key_word)){
             $all_goods->where("goods_name like '%".$key_word."%'")->orWhere("goods_sn like '%".$key_word."%'");
+        }
+        $category = $_GET['category'];
+        if(!empty($category)) {
+            $category_arr = array_filter(explode(',', $category));
+            $category = implode(',',$category_arr);
+            $all_goods->where("cat_id in (".$category.")");
         }
         $promote = $_GET['promote'];
         if(!empty($promote)){
@@ -79,6 +86,8 @@ class GoodsController extends Controller{
         return $this->render('goods_list',[
             'goods' => $goods,
             'pages' => $pages,
+            'category' => $goods_category,
+            'category_arr' => $category_arr,
         ]);
     }
 

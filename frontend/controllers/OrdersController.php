@@ -15,6 +15,7 @@ use common\models\Customer_type;
 use common\models\Ecs_user;
 use common\models\Goods;
 use common\models\Member_price;
+use common\models\Order_info;
 use common\models\Promotion;
 use common\models\Promotion_goods;
 use common\models\Region;
@@ -38,7 +39,7 @@ class OrdersController extends Controller{
 
     public function actionIndex()
     {
-        $all_orders = Customer_order::find()->where("sale_id =".Yii::$app->session['user_id']);
+        $all_orders = Customer_order::find();
 //        $customer_name = $_GET['customer_name'];
         $customer_id = $_GET['id'];
         if(!empty($customer_id)){
@@ -48,6 +49,19 @@ class OrdersController extends Controller{
             }else{
                 $all_orders->andWhere("customer_id =" . $customer_id);
             }
+        }
+        $status = $_GET['status'];
+        switch($status){
+            case 1 : $all_orders->andWhere("order_status = 0");
+                break;
+            case 2 : $all_orders->andWhere("pay_status = 0");
+                break;
+            case 3 : $all_orders->andWhere("shipping_status = 0");
+                break;
+            case 4 : $all_orders->andWhere("order_status = 2");
+                break;
+            case 5 : $all_orders->andWhere("order_status = 3");
+                break;
         }
         $start = $_GET['start'];
         $end = $_GET['end'];
@@ -173,6 +187,61 @@ class OrdersController extends Controller{
             'customer' => $customer,
             'count' => $count,
         ]);
+    }
+
+    //确定订单
+    public function actionConfirm_order(){
+        if(Yii::$app->request->post()){
+            $order_id = $_POST['order_id'];
+            if(!empty($order_id)){
+                $order = Order_info::find()->where("order_id =".$order_id)->one();
+                $order->order_status = 1;
+                if($order->save()){
+                    echo 111;
+                }
+            }
+            exit;
+        }
+    }
+
+    //收到货款
+    public function actionGet_money(){
+        if(Yii::$app->request->post()) {
+            $order_id = $_POST['order_id'];
+            if(!empty($order_id)){
+                $order = Order_info::find()->where("order_id =".$order_id)->one();
+                if($order->order_status == 1 && $order->pay_status == 0){
+                    $order->pay_status = 2;
+                    if($order->save()){
+                        echo 111;
+                        exit;
+                    }
+                }else{
+                    echo 222;
+                }
+            }
+            exit;
+        }
+    }
+
+    //订单出库
+    public function actionOut_push(){
+        if(Yii::$app->request->post()) {
+            $order_id = $_POST['order_id'];
+            if(!empty($order_id)){
+                $order = Order_info::find()->where("order_id =".$order_id)->one();
+                if($order->order_status == 1  && $order->shipping_status == 0){
+                    $order->shipping_status = 1;
+                    if($order->save()){
+                        echo 111;
+                        exit;
+                    }
+                }else{
+                    echo 222;
+                }
+            }
+            exit;
+        }
     }
 
     //将商品添加到临时购物车
