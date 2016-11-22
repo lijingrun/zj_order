@@ -26,9 +26,33 @@ use yii\widgets\LinkPager;
             });
         }
     }
+    function change_login(user_id){
+        var allow = $("#allow_login").val();
+        $.ajax({
+            type : 'post',
+            url : 'index.php?r=customer/change_allow',
+            data : {'allow' : allow, 'user_id' : user_id},
+            success : function(data){
+                if(data == 111){
+                    alert("操作成功！");
+                    location.reload();
+                }else{
+                    alert("服务器繁忙，请稍后重试！");
+                }
+            }
+        });
+    }
+    function find(){
+        var name = $("#user_name").val();
+        if(name != ''){
+            location.href="index.php?r=customer&key_word="+name;
+        }
+    }
 </script>
 
 <div align="right">
+    <input type="text" id="user_name" placeholder="请输入搜索客户名称" value="<?php echo $key_word;?>" />&nbsp;&nbsp;&nbsp;
+    <input type="button" value="查找客户" class="btn-primary" onclick="find();" />
     <a href="index.php?r=customer/add">
         <button class="btn-primary">添加新客户</button>
     </a>
@@ -49,7 +73,7 @@ use yii\widgets\LinkPager;
             <th>地区</th>
             <th>级别</th>
             <th>联系人</th>
-            <th>联系方式</th>
+            <th>登录状态</th>
             <th>状态</th>
             <th>上级分销</th>
             <th>操作</th>
@@ -65,8 +89,16 @@ use yii\widgets\LinkPager;
             <td><?php echo $customer['user_id']['username'];?></td>
             <td><?php echo $customer['province'].$customer['city'];?></td>
             <td><?php echo $customer['type_id']['rank_name']."(折扣:".$customer['type_id']['discount']."%)";?></td>
-            <td><?php echo $customer['name'];?></td>
-            <td><?php echo $customer['telephone'];?></td>
+            <td>
+                <p><?php echo $customer['name'];?></p>
+                <p><?php echo $customer['telephone']; ?></p>
+            </td>
+            <td>
+                <select onchange="change_login(<?php echo $customer['id'];?>);" id="allow_login">
+                    <option value=1 <?php if($customer['allow_login'] == 1){ echo "selected" ;}?>>允许</option>
+                    <option value=2 <?php if($customer['allow_login'] == 2){ echo "selected" ;}?>>禁止</option>
+                </select>
+            </td>
             <td>
                 <?php
                     switch($customer['status']){

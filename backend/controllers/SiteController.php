@@ -2,6 +2,7 @@
 namespace backend\controllers;
 
 use common\models\Carema;
+use common\models\Customer;
 use common\models\Ecs_user;
 use Yii;
 use yii\filters\AccessControl;
@@ -29,9 +30,15 @@ class SiteController extends \frontend\controllers\SiteController
                 Yii::$app->getSession()->setFlash('error','账号/密码错误！');
                 return $this->redirect('index.php?r=site/customer_login');
             }else{
-                Yii::$app->session['customer_id'] = $customer['user_id'];
-                Yii::$app->session['user_name'] = $customer['user_name'];
-                return $this->redirect("index.php?r=client");
+                $user_customer = Customer::find()->where('customer_id ='.$customer['user_id'])->asArray()->one();
+                if($user_customer['allow_login'] != 1){
+                    Yii::$app->getSession()->setFlash('error','账号禁止登录，请联系管理员！');
+                    return $this->redirect('index.php?r=site/customer_login');
+                }else {
+                    Yii::$app->session['customer_id'] = $customer['user_id'];
+                    Yii::$app->session['user_name'] = $customer['user_name'];
+                    return $this->redirect("index.php?r=client");
+                }
             }
         }else{
             return $this->render('customer_login');

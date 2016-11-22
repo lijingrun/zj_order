@@ -158,6 +158,25 @@ class CustomerController extends Controller{
         }
     }
 
+    public function actionChange_allow(){
+        if(Yii::$app->request->post()){
+            $allow = $_POST['allow'];
+            $id = $_POST['user_id'];
+            $customer = Customer::find()->where('id ='.$id)->one();
+            if($customer->allow_login == 1){
+                $customer->allow_login = 2;
+            }else{
+                $customer->allow_login = 1;
+            }
+            if($customer->save()){
+                echo 111;
+            }else{
+                echo 222;
+            }
+            exit;
+        }
+    }
+
     //客户详细资料
     public function actionDetail(){
         $id = $_GET['id'];
