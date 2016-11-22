@@ -648,6 +648,10 @@ class CustomerController extends Controller{
         $customer = Customer::find()->where("id = ".$customer_id)->asArray()->one();
         if(Yii::$app->request->post()){
             $up_id = $_POST['up_id'];
+            if(empty($up_id)){
+                Yii::$app->getSession()->setFlash('error','请选择上级用户');
+                return $this->redirect('index.php?r=customer/parent&id='.$customer_id);
+            }
             if($customer_id == $up_id){
                 Yii::$app->getSession()->setFlash('error','不能设置自己为上级分销');
                 return $this->redirect("index.php?r=customer/parent&id=".$customer_id);
